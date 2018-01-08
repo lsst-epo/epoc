@@ -1,0 +1,9 @@
+# This file tells docker which files to not send to the daemon
+# when creating the jupyterlab image.
+
+# By default, ignore everything.
+*
+
+# Add files by exception here.
+!jupyter-image/bake.sh
+!astropixie/*
