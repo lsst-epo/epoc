@@ -5,5 +5,5 @@
 *
 
 # Add files by exception here.
-!jupyter-image/bake.sh
+!jupyter-image/*
 !astropixie/*
