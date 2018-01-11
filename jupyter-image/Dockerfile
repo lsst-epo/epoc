@@ -1,4 +1,4 @@
-FROM lsstsqre/jld-lab
+FROM lsstsqre/jld-lab:latest
 
 # Add our astropixie API library
 ADD astropixie /opt/astropixie
