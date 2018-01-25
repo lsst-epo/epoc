@@ -1,7 +1,4 @@
-# EPO-406: We need to use the d20180111 image with jupyterlab where
-# it will render javascript for the bokeh graphs.
-#FROM lsstsqre/jld-lab:latest
-FROM lsstepo/jupyterlab:d20180111
+FROM lsstsqre/jld-lab:latest
 
 # Add our astropixie API library
 ADD astropixie /opt/astropixie
