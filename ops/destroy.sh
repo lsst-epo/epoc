@@ -1,3 +1,3 @@
 kubectl delete ingress jenkins-ingress
-helm delete jenkins-svc
-helm delete nginx
+helm delete --purge jenkins
+helm delete --purge nginx
