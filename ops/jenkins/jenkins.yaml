@@ -10,5 +10,6 @@ Master:
     - credentials-binding
     - git
     - github-oauth
+    - hashicorp-vault-plugin
 Agent:
   Cpu: 0m

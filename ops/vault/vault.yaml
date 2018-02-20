@@ -1,0 +1,7 @@
+vault:
+  dev: false
+  config:
+    storage:
+      consul:
+        address: consul-consul:8500
+        path: vault
