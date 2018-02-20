@@ -3,3 +3,12 @@ Master:
   Ingress:
     Annotations:
       - kubernetes.io/ingress.class: nginx
+  InstallPlugins:
+    - kubernetes
+    - workflow-aggregator
+    - workflow-job
+    - credentials-binding
+    - git
+    - github-oauth
+Agent:
+  Cpu: 0m
