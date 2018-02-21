@@ -1,15 +1,22 @@
-from astropy.coordinates import SkyCoord
 import os.path
+
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+
 import numpy
 
 from astropixie.types import OpenCluster, Star
 
 
-class MockCatalogProvider:
+class SampleCatalogProvider:
     def __init__(self):
         self.clusters = {
             OpenCluster('Berkeley 20', SkyCoord(ra='5h33m0s', dec='0h13m0s')):
-                self.list_berkeley20,
+            self.list_berkeley20,
+            OpenCluster('Berkeley 20', SkyCoord(ra='5h33m0s', dec='0h13m0s')):
+            self.list_berkeley20,
+            OpenCluster('Berkeley 20', SkyCoord(ra='5h33m0s', dec='0h13m0s')):
+            self.list_berkeley20,
         }
 
     def list_open_clusters(self):
@@ -23,7 +30,7 @@ class MockCatalogProvider:
         return []
 
     def list_berkeley20(self):
-        datafile = self._get_mock_data_path('berkeley20.tsv')
+        datafile = self._get_sample_data_path('berkeley20.tsv')
         stars = numpy.genfromtxt(
             datafile, delimiter=';', skip_header=41,
             names=['Seq', 'Xpos', 'Ypos', 'Vmag', 'V_R', 'e_Vmag', 'e_Rmag']
@@ -38,6 +45,6 @@ class MockCatalogProvider:
 
         return results
 
-    def _get_mock_data_path(self, name):
+    def _get_sample_data_path(self, name):
         modPath = os.path.dirname(__file__)
-        return os.path.join(modPath, 'mock_data', name)
+        return os.path.join(modPath, 'sample_data', name)

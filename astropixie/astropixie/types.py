@@ -1,4 +1,4 @@
-class OpenCluster:
+class OpenCluster(object):
     def __init__(self, friendlyName, skyCoords):
         self.name = friendlyName
         self.coord = skyCoords
@@ -7,7 +7,7 @@ class OpenCluster:
         return '<astropixie.OpenCluster %s %s>' % (self.name, self.coord)
 
 
-class Star:
+class Star(object):
     def __init__(self, Vmag, Rmag):
         self.Vmag = Vmag
         self.Rmag = Rmag
