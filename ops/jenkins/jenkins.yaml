@@ -11,5 +11,6 @@ Master:
     - git
     - github-oauth
     - hashicorp-vault-plugin
+    - ws-cleanup
 Agent:
   Cpu: 0m
