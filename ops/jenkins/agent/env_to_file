@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+# Takes an environment variable as its first argument, writing
+# it to the filename provided as the second argument.
+import os
+import sys
+
+with open(sys.argv[2], 'w') as f:
+  f.write(os.environ[sys.argv[1]])

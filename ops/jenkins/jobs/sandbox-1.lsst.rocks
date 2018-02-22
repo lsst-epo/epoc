@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/lsst-sqre/jupyterlabdemo.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>jenkins-jenkins-slave</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>export JLD_GITHUB_ORGANIZATION_WHITELIST=lsst-epo
+export JLD_HOSTNAME=sandbox-1.lsst.rocks
+export JLD_ALLOWED_GROUPS=lsst-epo
+export JLD_OAUTH_PROVIDER=github
+export JLD_PREPULLER_OWNER=lsstepo
+export JLD_PREPULLER_IMAGE_NAME=jupyterlab
+export JLD_GKE_NODE_COUNT=2
+
+export JLD_CERTIFICATE_DIRECTORY=$(mktemp -d)
+env_to_file CERT $JLD_CERTIFICATE_DIRECTORY/cert.pem
+env_to_file CHAIN $JLD_CERTIFICATE_DIRECTORY/chain.pem
+env_to_file KEY $JLD_CERTIFICATE_DIRECTORY/key.pem
+
+env_to_file GOOGLE_SERVICE_ACCOUNT_JSON google_key.json
+gcloud auth activate-service-account --key-file google_key.json --project $GOOGLE_PROJECT
+
+
+virtualenv -p /usr/bin/python3 env
+. env/bin/activate
+pip install -e tools/deployment
+
+gcloud container clusters get-credentials sandbox-1-lsst-rocks --zone us-central1-a --project $GOOGLE_PROJECT
+deploy-jupyterlabdemo --undeploy || echo &quot;Error undeploying, but continuing...&quot;
+deploy-jupyterlabdemo</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.34">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>true</cleanWhenUnstable>
+      <cleanWhenFailure>true</cleanWhenFailure>
+      <cleanWhenNotBuilt>true</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers>
+    <com.datapipe.jenkins.vault.VaultBuildWrapper plugin="hashicorp-vault-plugin@2.1.0">
+      <configuration>
+        <vaultUrl>http://vault-vault:8200</vaultUrl>
+        <vaultCredentialId>78115cd2-68a6-41c3-ab2e-3b7d9303f6bf</vaultCredentialId>
+      </configuration>
+      <vaultSecrets>
+        <com.datapipe.jenkins.vault.model.VaultSecret>
+          <path>secret/aws_keys</path>
+          <secretValues>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>AWS_ACCESS_KEY_ID</envVar>
+              <vaultKey>AWS_ACCESS_KEY_ID</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>AWS_SECRET_ACCESS_KEY</envVar>
+              <vaultKey>AWS_SECRET_ACCESS_KEY</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+          </secretValues>
+        </com.datapipe.jenkins.vault.model.VaultSecret>
+        <com.datapipe.jenkins.vault.model.VaultSecret>
+          <path>secret/sandbox-1.lsst.rocks</path>
+          <secretValues>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>JLD_OAUTH_CLIENT_ID</envVar>
+              <vaultKey>GITHUB_OAUTH_CLIENT_ID</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>JLD_OAUTH_SECRET</envVar>
+              <vaultKey>GITHUB_OAUTH_SECRET</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>CERT</envVar>
+              <vaultKey>cert.pem</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>CHAIN</envVar>
+              <vaultKey>chain.pem</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>KEY</envVar>
+              <vaultKey>key.pem</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+          </secretValues>
+        </com.datapipe.jenkins.vault.model.VaultSecret>
+        <com.datapipe.jenkins.vault.model.VaultSecret>
+          <path>secret/google_keys</path>
+          <secretValues>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>GOOGLE_SERVICE_ACCOUNT_JSON</envVar>
+              <vaultKey>service_account_json_key</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>GOOGLE_PROJECT</envVar>
+              <vaultKey>project</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+          </secretValues>
+        </com.datapipe.jenkins.vault.model.VaultSecret>
+      </vaultSecrets>
+      <valuesToMask/>
+      <vaultAccessor/>
+    </com.datapipe.jenkins.vault.VaultBuildWrapper>
+  </buildWrappers>
+</project>

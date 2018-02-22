@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/lsst-epo/vela.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>./build.sh
+docker login --username &quot;$DOCKER_USER&quot; --password &quot;$DOCKER_PASSWORD&quot;
+./daily_release.sh
+docker logout</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <com.datapipe.jenkins.vault.VaultBuildWrapper plugin="hashicorp-vault-plugin@2.1.0">
+      <configuration>
+        <vaultUrl>http://vault-vault:8200</vaultUrl>
+        <vaultCredentialId>78115cd2-68a6-41c3-ab2e-3b7d9303f6bf</vaultCredentialId>
+      </configuration>
+      <vaultSecrets>
+        <com.datapipe.jenkins.vault.model.VaultSecret>
+          <path>secret/docker</path>
+          <secretValues>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>DOCKER_USER</envVar>
+              <vaultKey>username</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>DOCKER_PASSWORD</envVar>
+              <vaultKey>password</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+          </secretValues>
+        </com.datapipe.jenkins.vault.model.VaultSecret>
+      </vaultSecrets>
+      <valuesToMask/>
+      <vaultAccessor/>
+    </com.datapipe.jenkins.vault.VaultBuildWrapper>
+  </buildWrappers>
+</project>
