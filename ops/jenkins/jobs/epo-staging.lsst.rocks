@@ -50,6 +50,7 @@ virtualenv -p /usr/bin/python3 env
 . env/bin/activate
 pip install -e tools/deployment
 
+gcloud container clusters get-credentials epo-staging-lsst-rocks --zone us-central1-a --project $GOOGLE_PROJECT
 deploy-jupyterlabdemo --undeploy || echo &quot;Error undeploying, but continuing...&quot;
 deploy-jupyterlabdemo</command>
     </hudson.tasks.Shell>
