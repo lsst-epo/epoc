@@ -13,4 +13,12 @@ Master:
     - hashicorp-vault-plugin
     - ws-cleanup
 Agent:
+  AlwaysPullImage: true
   Cpu: 0m
+  Image: lsstepo/jenkins-agent
+  ImageTag: latest
+  Privileged: true
+  volumes:
+  - type: HostPath
+    hostPath: /var/run/docker.sock
+    mountPath: /var/run/docker.sock
