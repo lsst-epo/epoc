@@ -13,3 +13,13 @@ rm -rf /opt/hr-diagram-activity
 
 # Clone our educational notebooks
 git clone https://github.com/lsst-epo/hr-diagram-investigations.git /opt/hr-diagram-activity
+
+pip3 uninstall -y bokeh
+
+git clone -b tickets/EPO-432 https://github.com/lsst-epo/bokeh.git
+cd bokeh/bokehjs
+npm install --no-save
+node ./prepare.js
+cd ..
+python3 setup.py develop --build-js
+chmod -R o+rw .
