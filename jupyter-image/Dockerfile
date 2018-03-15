@@ -1,5 +1,4 @@
-#FROM lsstsqre/jld-lab:latest
-FROM lsstepo/python36-lab
+FROM lsstsqre/jld-lab:latest
 
 # Add our astropixie API library
 ADD astropixie /opt/astropixie
@@ -10,4 +9,4 @@ ADD jupyter-image/runlab.sh jupyter-image/lablauncher.bash jupyter-image/refresh
 
 # Add bake script, and call it.
 ADD jupyter-image/bake.sh /opt/lsst-epo/bake.sh
-RUN /opt/lsst-epo/bake.sh
+RUN source scl_source enable rh-python36 && /opt/lsst-epo/bake.sh
