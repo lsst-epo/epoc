@@ -37,7 +37,7 @@ fi
 cmd="jupyter-labhub \
      --ip='*' --port=8888 \
      --hub-api-url=${JUPYTERHUB_API_URL} \
-     --notebook-dir=${HOME}/notebooks"
+     --notebook-dir=${HOME}/notebooks --allow-root --debug"
 if [ -n "${DEBUG}" ]; then
     cmd="${cmd} --debug"
 fi
