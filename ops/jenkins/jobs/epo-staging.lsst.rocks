@@ -1,7 +1,6 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<project>
+<?xml version="1.0" encoding="UTF-8"?><project>
   <actions/>
-  <description></description>
+  <description/>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
@@ -51,7 +50,7 @@ virtualenv -p /usr/bin/python3 env
 pip install -e tools/deployment
 
 gcloud container clusters get-credentials epo-staging-lsst-rocks --zone us-central1-a --project $GOOGLE_PROJECT
-deploy-jupyterlabdemo --undeploy || echo &quot;Error undeploying, but continuing...&quot;
+deploy-jupyterlabdemo --undeploy || echo "Error undeploying, but continuing..."
 deploy-jupyterlabdemo</command>
     </hudson.tasks.Shell>
   </builders>
@@ -67,7 +66,7 @@ deploy-jupyterlabdemo</command>
       <cleanWhenAborted>true</cleanWhenAborted>
       <notFailBuild>false</notFailBuild>
       <cleanupMatrixParent>false</cleanupMatrixParent>
-      <externalDelete></externalDelete>
+      <externalDelete/>
     </hudson.plugins.ws__cleanup.WsCleanup>
   </publishers>
   <buildWrappers>

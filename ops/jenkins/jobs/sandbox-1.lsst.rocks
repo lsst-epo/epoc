@@ -1,10 +1,27 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version='1.1' encoding='UTF-8'?>
 <project>
   <actions/>
   <description></description>
   <keepDependencies>false</keepDependencies>
-  <properties/>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>IMAGE_NAME</name>
+          <description>What image should this environment&apos;s hub be looking at in docker?  This should correlate with what is passed to daily image.</description>
+          <defaultValue>jupyterlab</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>JLD_BRANCH</name>
+          <description>The branch of https://github.com/lsst-sqre/jupyterlabdemo to use.</description>
+          <defaultValue>master</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.8.0">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -13,7 +30,7 @@
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>master</name>
+        <name>$JLD_BRANCH</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -34,7 +51,7 @@ export JLD_HOSTNAME=sandbox-1.lsst.rocks
 export JLD_ALLOWED_GROUPS=lsst-epo
 export JLD_OAUTH_PROVIDER=github
 export JLD_PREPULLER_OWNER=lsstepo
-export JLD_PREPULLER_IMAGE_NAME=jupyterlab
+export JLD_PREPULLER_IMAGE_NAME=${IMAGE_NAME}
 export JLD_GKE_NODE_COUNT=2
 
 export JLD_CERTIFICATE_DIRECTORY=$(mktemp -d)
