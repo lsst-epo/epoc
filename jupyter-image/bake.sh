@@ -11,6 +11,13 @@ pip3 install /opt/astropixie
 # that may exist, so we can get a fresh copy without error.
 rm -rf /opt/hr-diagram-activity
 
+# Install ipyaladin
+git clone https://github.com/cds-astro/ipyaladin.git /opt/ipyaladin
+(cd /opt/ipyaladin/js && npm install --unsafe-perm)
+(cd /opt/ipyaladin && pip install -e .)
+(cd /opt/ipyaladin/js && jupyter labextension install)
+jupyter nbextension enable --py --sys-prefix ipyaladin
+
 # Clone our educational notebooks
 git clone https://github.com/lsst-epo/hr-diagram-investigations.git /opt/hr-diagram-activity
 
@@ -22,7 +29,8 @@ npm install --no-save
 node ./prepare.js
 cd ..
 python3 setup.py develop --build-js
-chmod -R o+rw .
 
+# Install nbserverproxy.  This allows for URLs like /user/x/proxy/d
+# to be routed to port d on the container.
 pip3 install git+https://github.com/jupyterhub/nbserverproxy
 jupyter serverextension enable --py nbserverproxy
