@@ -6,11 +6,6 @@ set -e
 # Install astropixie API library
 pip3 install /opt/astropixie
 
-# EPO-406 - We need to build on top of a previous EPO image
-# If we're building on top of a previous image, delete those notebooks
-# that may exist, so we can get a fresh copy without error.
-rm -rf /opt/hr-diagram-activity
-
 # Install ipyaladin
 git clone https://github.com/cds-astro/ipyaladin.git /opt/ipyaladin
 (cd /opt/ipyaladin/js && npm install --unsafe-perm)
