@@ -6,6 +6,9 @@ set -e
 # Install astropixie API library
 pip3 install /opt/astropixie
 
+# Install healpy
+pip3 install healpy
+
 # Install ipyaladin
 git clone https://github.com/cds-astro/ipyaladin.git /opt/ipyaladin
 (cd /opt/ipyaladin/js && npm install --unsafe-perm)
