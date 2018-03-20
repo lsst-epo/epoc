@@ -16,7 +16,6 @@ git clone https://github.com/cds-astro/ipyaladin.git /opt/ipyaladin
 (cd /opt/ipyaladin/js && npm install --unsafe-perm)
 (cd /opt/ipyaladin && pip install -e .)
 (cd /opt/ipyaladin/js && jupyter labextension install)
-jupyter nbextension enable --py --sys-prefix ipyaladin
 
 # Clone our educational notebooks
 git clone https://github.com/lsst-epo/hr-diagram-investigations.git /opt/hr-diagram-activity
