@@ -118,18 +118,6 @@ deploy-jupyterlabdemo</command>
               <envVar>JLD_OAUTH_SECRET</envVar>
               <vaultKey>GITHUB_OAUTH_SECRET</vaultKey>
             </com.datapipe.jenkins.vault.model.VaultSecretValue>
-            <com.datapipe.jenkins.vault.model.VaultSecretValue>
-              <envVar>CERT</envVar>
-              <vaultKey>cert.pem</vaultKey>
-            </com.datapipe.jenkins.vault.model.VaultSecretValue>
-            <com.datapipe.jenkins.vault.model.VaultSecretValue>
-              <envVar>CHAIN</envVar>
-              <vaultKey>chain.pem</vaultKey>
-            </com.datapipe.jenkins.vault.model.VaultSecretValue>
-            <com.datapipe.jenkins.vault.model.VaultSecretValue>
-              <envVar>KEY</envVar>
-              <vaultKey>key.pem</vaultKey>
-            </com.datapipe.jenkins.vault.model.VaultSecretValue>
           </secretValues>
         </com.datapipe.jenkins.vault.model.VaultSecret>
         <com.datapipe.jenkins.vault.model.VaultSecret>
@@ -142,6 +130,23 @@ deploy-jupyterlabdemo</command>
             <com.datapipe.jenkins.vault.model.VaultSecretValue>
               <envVar>GOOGLE_PROJECT</envVar>
               <vaultKey>project</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+          </secretValues>
+        </com.datapipe.jenkins.vault.model.VaultSecret>
+        <com.datapipe.jenkins.vault.model.VaultSecret>
+          <path>secret/lsst.rocks</path>
+          <secretValues>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>CERT</envVar>
+              <vaultKey>cert.pem</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>CHAIN</envVar>
+              <vaultKey>chain.pem</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>KEY</envVar>
+              <vaultKey>key.pem</vaultKey>
             </com.datapipe.jenkins.vault.model.VaultSecretValue>
           </secretValues>
         </com.datapipe.jenkins.vault.model.VaultSecret>

@@ -1,9 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
   <actions/>
-  <description/>
+  <description></description>
   <keepDependencies>false</keepDependencies>
   <properties/>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.8.0">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -50,7 +51,7 @@ virtualenv -p /usr/bin/python3 env
 pip install -e tools/deployment
 
 gcloud container clusters get-credentials epo-staging-lsst-rocks --zone us-central1-a --project $GOOGLE_PROJECT
-deploy-jupyterlabdemo --undeploy || echo "Error undeploying, but continuing..."
+deploy-jupyterlabdemo --undeploy || echo &quot;Error undeploying, but continuing...&quot;
 deploy-jupyterlabdemo</command>
     </hudson.tasks.Shell>
   </builders>
@@ -66,7 +67,7 @@ deploy-jupyterlabdemo</command>
       <cleanWhenAborted>true</cleanWhenAborted>
       <notFailBuild>false</notFailBuild>
       <cleanupMatrixParent>false</cleanupMatrixParent>
-      <externalDelete/>
+      <externalDelete></externalDelete>
     </hudson.plugins.ws__cleanup.WsCleanup>
   </publishers>
   <buildWrappers>
@@ -100,18 +101,6 @@ deploy-jupyterlabdemo</command>
               <envVar>JLD_OAUTH_SECRET</envVar>
               <vaultKey>GITHUB_OAUTH_SECRET</vaultKey>
             </com.datapipe.jenkins.vault.model.VaultSecretValue>
-            <com.datapipe.jenkins.vault.model.VaultSecretValue>
-              <envVar>CERT</envVar>
-              <vaultKey>cert.pem</vaultKey>
-            </com.datapipe.jenkins.vault.model.VaultSecretValue>
-            <com.datapipe.jenkins.vault.model.VaultSecretValue>
-              <envVar>CHAIN</envVar>
-              <vaultKey>chain.pem</vaultKey>
-            </com.datapipe.jenkins.vault.model.VaultSecretValue>
-            <com.datapipe.jenkins.vault.model.VaultSecretValue>
-              <envVar>KEY</envVar>
-              <vaultKey>key.pem</vaultKey>
-            </com.datapipe.jenkins.vault.model.VaultSecretValue>
           </secretValues>
         </com.datapipe.jenkins.vault.model.VaultSecret>
         <com.datapipe.jenkins.vault.model.VaultSecret>
@@ -124,6 +113,23 @@ deploy-jupyterlabdemo</command>
             <com.datapipe.jenkins.vault.model.VaultSecretValue>
               <envVar>GOOGLE_PROJECT</envVar>
               <vaultKey>project</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+          </secretValues>
+        </com.datapipe.jenkins.vault.model.VaultSecret>
+        <com.datapipe.jenkins.vault.model.VaultSecret>
+          <path>secret/lsst.rocks</path>
+          <secretValues>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>CERT</envVar>
+              <vaultKey>cert.pem</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>CHAIN</envVar>
+              <vaultKey>chain.pem</vaultKey>
+            </com.datapipe.jenkins.vault.model.VaultSecretValue>
+            <com.datapipe.jenkins.vault.model.VaultSecretValue>
+              <envVar>KEY</envVar>
+              <vaultKey>key.pem</vaultKey>
             </com.datapipe.jenkins.vault.model.VaultSecretValue>
           </secretValues>
         </com.datapipe.jenkins.vault.model.VaultSecret>
