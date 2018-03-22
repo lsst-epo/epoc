@@ -6,8 +6,8 @@ set -e
 # Install astropixie API library
 pip3 install /opt/astropixie
 
-# Install healpy
-pip3 install healpy
+# Install healpy and astroquery
+pip3 install healpy astroquery==0.3.7
 
 # Install ipyaladin
 git clone https://github.com/cds-astro/ipyaladin.git /opt/ipyaladin
