@@ -18,11 +18,17 @@ git clone https://github.com/cds-astro/ipyaladin.git /opt/ipyaladin
 # Clone our educational notebooks
 git clone https://github.com/lsst-epo/hr-diagram-investigations.git /opt/hr-diagram-activity
 
+# Gulp in bokeh requires a ridiculously recent NodeJS
+curl -o /opt/node.xz https://nodejs.org/dist/v8.10.0/node-v8.10.0-linux-x64.tar.xz
+(cd /opt && tar xvfJ node.xz)
+export PATH=/opt/node-v8.10.0-linux-x64/bin:$PATH
+
+rm -rf /tmp/phantomjs
 pip3 uninstall -y bokeh
 
 git clone -b tickets/EPO-432 https://github.com/lsst-epo/bokeh.git
 cd bokeh/bokehjs
-npm install --no-save
+npm install --no-save --unsafe-perm
 node ./prepare.js
 cd ..
 python3 setup.py develop --build-js
