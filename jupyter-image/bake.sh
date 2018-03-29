@@ -26,7 +26,7 @@ export PATH=/opt/node-v8.10.0-linux-x64/bin:$PATH
 rm -rf /tmp/phantomjs
 pip3 uninstall -y bokeh
 
-git clone -b tickets/EPO-432 https://github.com/lsst-epo/bokeh.git
+git clone https://github.com/bokeh/bokeh.git
 cd bokeh/bokehjs
 npm install --no-save --unsafe-perm
 node ./prepare.js
