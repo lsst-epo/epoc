@@ -1,11 +1,14 @@
-import numpy as np
 import csv
+import os
 import re
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
+import numpy as np
+
 import pandas as pd
+
 
 class OpenCluster(object):
     ra = None
@@ -16,20 +19,26 @@ class OpenCluster(object):
         NotImplemented()
 
 
-class Berkeley20(OpenCluster):
+class SampleOpenCluster(OpenCluster):        
+    def _get_data_path(self, name):
+        modPath = os.path.dirname(__file__)
+        return os.path.join(modPath, 'sample_data', name)
+
+
+class Berkeley20(SampleOpenCluster):
     """
     paper: ???
     http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Berkeley20&submit=submit+id
     https://www.aanda.org/articles/aa/abs/2002/27/aa2476/aa2476.html
     """
-    coord = SkyCoord("05 32 37.0 +00 11 18", unit=(u.hourangle, u.deg),
+    coord = SkyCoord('05 32 37.0 +00 11 18', unit=(u.hourangle, u.deg),
                      distance=9000 * u.parsec)  # +- 480
     fe_h = -0.3
-    tau = 5.5  # Gyr
+    tau = 5.5
     eb_v = 0.15
     Z = 0.008  # Z_sun
     d_modulus = 14.7  # (m - M)
-    name = "Berkeley 20"
+    name = 'Berkeley 20'
     image_path = 'notebooks/data/berkeley20-square.png'
     _dtype = [('id', 'i'), ('x', 'f'), ('y', 'f'),
               ('u_b', 'f'), ('b_v', 'f'), ('v_r', 'f'),
@@ -42,7 +51,8 @@ class Berkeley20(OpenCluster):
         return self.coord.distance.value
 
     def cds_stars(cls):
-        with open('data/berkeley20.tsv', newline='') as f:
+        path = cls._get_data_path('berkeley20.tsv')
+        with open(path, newline='') as f:
             reader = csv.reader(f, delimiter=';')
             b20p = [row for row in reader]
             b20rawdata = b20p[41:]
@@ -54,10 +64,11 @@ class Berkeley20(OpenCluster):
             return (x, y)
 
     def stars(cls):
-        with open('data/berkeley20-durgapal.dat', newline='') as f:
+        path = cls._get_data_path('berkeley20-durgapal.dat')
+        with open(path, newline='') as f:
             lines = f.readlines()
             data = []
-            pattern = re.compile("^\s+|\s* \s*|\s+$")
+            pattern = re.compile('^\s+|\s* \s*|\s+$')
             for l in lines:
                 values = [v for v in pattern.split(l) if v]
                 V = float(values[3])
@@ -67,7 +78,7 @@ class Berkeley20(OpenCluster):
             y = [data[i][0] for i in range(len(data))]
             return (x, y)
 
-    def _new_row(cls, arr, values):
+    def _dtype_row(cls, arr, values):
         i = 0
         v_len = len(values)
         for name in arr.dtype.names:
@@ -79,86 +90,48 @@ class Berkeley20(OpenCluster):
         return np.array([tuple(values)], dtype=cls._dtype)
 
     def to_array(cls):
-        with open('data/berkeley20-durgapal.dat', newline='') as f:
+        path = cls._get_data_path('berkeley20-durgapal.dat')
+        with open(path, newline='') as f:
             lines = f.readlines()
-            data = np.empty((0,1), dtype=cls._dtype)
-            pattern = re.compile("^\s+|\s* \s*|\s+$")
+            data = np.empty((0, 1), dtype=cls._dtype)
+            pattern = re.compile('^\s+|\s* \s*|\s+$')
             for l in lines:
                 values = [v for v in pattern.split(l) if v]
-                newrow = cls._new_row(data, values)
+                newrow = cls._dtype_row(data, values)
                 data = np.row_stack((data, newrow))
             return data
 
-class NGC2849(OpenCluster):
+
+class NGC2849(SampleOpenCluster):
     """
     paper: http://iopscience.iop.org/article/10.1086/424939/pdf
            https://academic.oup.com/mnras/article/430/1/221/984833
     """
-    coord = SkyCoord("09 19 23.0 -40 31 01", unit=(u.hourangle, u.deg),
+    coord = SkyCoord('09 19 23.0 -40 31 01', unit=(u.hourangle, u.deg),
                      distance=6110 * u.parsec)
-    fe_h = -0.24
-    t = 0.88
-    eb_v = 0.50
-    Z = 0.008  # 0. Z_sun
-    d_modulus = 13.93  # (m - M)
-    name = "NGC 2849"
-    image_path = 'notebooks/data/ngc2849-square.png'
-    _dtype = [('id', 'i'), ('x', 'f'), ('y', 'f'),
-              ('u', 'f'), ('err_u', 'f'), ('b', 'f'), ('err_b', 'f'),
-              ('v', 'f'), ('err_v', 'f'), ('i', 'f'), ('err_i', 'f'),
-              ('b_v', 'f'), ('lum', 'f'), ('temp', 'f')]
 
-    @property
-    def distance(self):
-        return self.coord.distance.value
-    
     def stars(cls):
-        with open('data/ngc2849-kyeong.dat', newline='') as f:
+        path = self._get_data_path('ngc2849-kyeong.dat')
+        with open(path, newline='') as f:
             lines = f.readlines()
             lines = lines[2:]
             data = []
-            pattern = re.compile("^\s+|\s* \s*|\s+$")
+            pattern = re.compile('^\s+|\s* \s*|\s+$')
             for l in lines:
                 values = [v for v in pattern.split(l) if v]
                 V = float(values[7])
                 B = float(values[5])
                 data.append([V, B - V])
-            x = [data[i][1] for i in range(len(data) - 1)]
-            y = [data[i][0] for i in range(len(data) - 1)]
+                x = [data[i][1] for i in range(len(data) - 1)]
+                y = [data[i][0] for i in range(len(data) - 1)]
         return (x, y)
 
-    def _new_row(cls, arr, values):
-        i = 0
-        v_len = len(values)
-        for name in arr.dtype.names:
-            if i < v_len:
-                values[i] = arr.dtype[name].type(values[i])
-            else:
-                values.append(0)
-            i += 1
-        return np.array([tuple(values)], dtype=cls._dtype)
 
-    def to_array(cls):
-        with open('data/ngc2849-kyeong.dat', newline='') as f:
-            lines = f.readlines()
-            lines = lines[2:]  # Skip column header rows.
-            data = np.empty((0,1), dtype=cls._dtype)
-            pattern = re.compile("^\s+|\s* \s*|\s+$")
-            for l in lines:
-                values = [v for v in pattern.split(l) if v]
-                V = float(values[7])
-                B = float(values[5])
-                values.append(B-V)
-                newrow = cls._new_row(data, values)
-                data = np.row_stack((data, newrow))
-            return data
-
-
-class NGC7790(OpenCluster):
+class NGC7790(SampleOpenCluster):
     """
     paper: https://aas.aanda.org/articles/aas/pdf/2000/15/ds6060.pdf
     """
-    coord = SkyCoord("23 58 24.0 +61 12 30", unit=(u.hourangle, u.deg),
+    coord = SkyCoord('23 58 24.0 +61 12 30', unit=(u.hourangle, u.deg),
                      distance=3230 * u.parsec)
 
 
@@ -208,17 +181,17 @@ temps = [['O5', 37500, -1.47, -0.32],
 
 
 def get_hr_data(name):
-    if name.lower() == "berkeley20":
+    if name.lower() == 'berkeley20':
         data = Berkeley20()
-    elif name.lower() == "berkeley20_cds":
+    elif name.lower() == 'berkeley20_cds':
         b20 = Berkeley20()
         b20.stars = b20.cds_stars
         data = b20
-    elif name.lower() == "ngc2849":
+    elif name.lower() == 'ngc2849':
         data = NGC2849()
     else:
-        raise NotImplemented("Only berkeley20 and ngc2849 are "
-                             "implemented right now.")
+        raise NotImplemented('Only berkeley20 and ngc2849 are '
+                             'implemented right now.')
     if data:
         return data
 
@@ -246,9 +219,18 @@ def pprint(arr, columns=('temp', 'lum'),
     elif type(max_rows) is int:
         pd.set_option('display.max_rows', max_rows)
     pd.set_option('precision', precision)
-    df = pd.DataFrame(arr.flatten(), index=arr['id'].flatten(), columns=columns)
+    df = pd.DataFrame(arr.flatten(), index=arr['id'].flatten(),
+                      columns=columns)
     df.columns = names
     return df
+
+
+def get_sample_file_location(name):
+    """
+    Given a sample file name, return the path to that file.
+    """
+    modPath = os.path.dirname(__file__)
+    return os.path.join(modPath, 'sample_data', name)
 
 
 L_ZERO_POINT = 3.0128 * pow(10, 28)  # units to add:  * u.watt

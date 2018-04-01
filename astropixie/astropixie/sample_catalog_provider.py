@@ -11,12 +11,21 @@ from astropixie.types import OpenCluster, Star
 class SampleCatalogProvider:
     def __init__(self):
         self.clusters = {
-            OpenCluster('Berkeley 20', SkyCoord(ra='5h33m0s', dec='0h13m0s')):
+            OpenCluster('Berkeley 20',
+                        SkyCoord('05 32 37.0 +00 11 18',
+                                 unit=(u.hourangle, u.deg), distance=9000 * u.parsec),
+                        source=None):
             self.list_berkeley20,
-            OpenCluster('Berkeley 20', SkyCoord(ra='5h33m0s', dec='0h13m0s')):
-            self.list_berkeley20,
-            OpenCluster('Berkeley 20', SkyCoord(ra='5h33m0s', dec='0h13m0s')):
-            self.list_berkeley20,
+            OpenCluster('NGC2849',
+                        SkyCoord('09 19 23.0 -40 31 01',
+                                 unit=(u.hourangle, u.deg), distance=6110 * u.parsec),
+                        source=None):
+            self.list_ngc2849,
+            OpenCluster('NGC7790',
+                        SkyCoord('23 58 24.0 +61 12 30',
+                                 unit=(u.hourangle, u.deg), distance=3230 * u.parsec),
+                        source=None):
+            self.list_ngc7790,
         }
 
     def list_open_clusters(self):
@@ -44,6 +53,13 @@ class SampleCatalogProvider:
             results.append(Star(v_mag, r_mag))
 
         return results
+
+    def list_ngc2849(self):
+        pass
+
+
+    def list_ngc7790(self):
+        pass
 
     def _get_sample_data_path(self, name):
         modPath = os.path.dirname(__file__)

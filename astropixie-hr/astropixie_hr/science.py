@@ -4,6 +4,7 @@ import math
 
 import numpy as np
 
+
 def distance(modulus):
     """
     """
@@ -36,16 +37,14 @@ def teff(cluster):
     return teffs
 
 
-def absolute_mag(cluster, distance=None):
+def absolute_mag(cluster):
     """
     """
     abs_mags = []
     teffs = teff(cluster)
     _, vs = cluster.stars()
-    if not distance:
-        distance = cluster.distance
     for t, v in zip(teffs, vs):
-        abs_mags.append(v + bc(t) - 5 * math.log(distance / 10, 10)
+        abs_mags.append(v + bc(t) - 5 * math.log(cluster.distance / 10, 10)
                         - 3.1 * cluster.eb_v)
     return abs_mags
 
@@ -67,15 +66,15 @@ def color(teffs):
     colors = []
     for t in teffs:
         if t >= 7500:
-            colors.append('#CAE1FF')
+            colors.append('blue_white')  # RGB:CAE1FF
         elif t >= 6000:
-            colors.append('#F6F6F6')
+            colors.append('white')  # RGB:F6F6F6
         elif t >= 5200:
-            colors.append('#FFFEB2')
+            colors.append('yellowish_white')  # RGB:FFFEB2
         elif t >= 3700:
-            colors.append('#FFB28B')
+            colors.append('pale_yellow_orange')  # RGB:FFB28B
         else:
-            colors.append('#FF9966')
+            colors.append('light_orange_red')  # RGB:FF9966
     return colors
 
 
@@ -88,11 +87,8 @@ def table(cluster):
     lums = luminosity(cluster)
     arr = cluster.to_array()
     i = 0
-    try:
-      for row in arr:
-          row['lum'][0] = np.array([lums[i]], dtype='f')
-          row['temp'][0] = np.array([teffs[i]], dtype='f')
-          i += 1
-    except Exception as e:
-        print(i)
+    for row in arr:
+        row['lum'][0] = np.array([lums[i]], dtype='f')
+        row['temp'][0] = np.array([teffs[i]], dtype='f')
+        i += 1
     return arr
