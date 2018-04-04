@@ -1,10 +1,11 @@
 import astropixie.catalog_service
-import astropixie.mock_catalog_provider
+import astropixie.sample_catalog_provider
 
+from . import data
 
 def hello_universe():
     return "Hello universe!"
 
 
-provider = astropixie.mock_catalog_provider.MockCatalogProvider()
+provider = astropixie.sample_catalog_provider.SampleCatalogProvider()
 Catalog = astropixie.catalog_service.CatalogService(provider)
