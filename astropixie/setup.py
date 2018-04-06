@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='astropixie',
-      version='0.1.1',
+      version='0.1.2',
       description='LSST EPO python library.',
       url='https://github.com/lsst-epo/vela/astropixie',
       author='LSST EPO Team',

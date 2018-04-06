@@ -1,7 +1,7 @@
 import csv
 import os
 import re
-import urlparse
+from urllib.parse import urljoin
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -23,7 +23,7 @@ class OpenCluster(object):
 class SampleOpenCluster(OpenCluster):
     def _get_data_path(self, name):
         url = 'http://assets.lsst.rocks'
-        return urlparse.urljoin(url, 'data', name)
+        return urljoin(url, 'data', name)
 
 
 class Berkeley20(SampleOpenCluster):
