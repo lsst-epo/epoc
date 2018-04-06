@@ -1,6 +1,7 @@
 import csv
 import os
 import re
+import urlparse
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -19,10 +20,10 @@ class OpenCluster(object):
         NotImplemented()
 
 
-class SampleOpenCluster(OpenCluster):        
+class SampleOpenCluster(OpenCluster):
     def _get_data_path(self, name):
-        modPath = os.path.dirname(__file__)
-        return os.path.join(modPath, 'sample_data', name)
+        url = 'http://assets.lsst.rocks'
+        return urlparse.urljoin(url, 'data', name)
 
 
 class Berkeley20(SampleOpenCluster):
@@ -39,7 +40,7 @@ class Berkeley20(SampleOpenCluster):
     Z = 0.008  # Z_sun
     d_modulus = 14.7  # (m - M)
     name = 'Berkeley 20'
-    image_path = 'notebooks/data/berkeley20-square.png'
+    image_path = 'http://assets.lsst.rocks/data/berkeley20-square.png'
     _dtype = [('id', 'i'), ('x', 'f'), ('y', 'f'),
               ('u_b', 'f'), ('b_v', 'f'), ('v_r', 'f'),
               ('v_i', 'f'), ('err_u_b', 'f'),
@@ -224,13 +225,6 @@ def pprint(arr, columns=('temp', 'lum'),
     df.columns = names
     return df
 
-
-def get_sample_file_location(name):
-    """
-    Given a sample file name, return the path to that file.
-    """
-    modPath = os.path.dirname(__file__)
-    return os.path.join(modPath, 'sample_data', name)
 
 
 L_ZERO_POINT = 3.0128 * pow(10, 28)  # units to add:  * u.watt
