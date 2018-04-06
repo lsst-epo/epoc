@@ -12,11 +12,11 @@ setup(name='astropixie-widgets',
       package_data={'astropixie': ['sample_data/*']},
       install_requires=[
           'astropixie',
-          'astropy==3.0',
+          'astropy==3.0.1',
           'astroquery',
           'bokeh>=0.12.15',
           # 'ipyaladin',
-          'numpy==1.14.1',
+          'numpy==1.14.2',
           'pandas',
           'pytest',
           'scipy'
