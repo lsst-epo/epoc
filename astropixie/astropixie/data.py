@@ -1,6 +1,7 @@
 import csv
 import os
 import re
+from urllib.request import urlopen
 from urllib.parse import urljoin
 
 from astropy import units as u
@@ -21,10 +22,9 @@ class OpenCluster(object):
 
 
 class SampleOpenCluster(OpenCluster):
-    def _get_data_path(self, name):
-        url = 'http://assets.lsst.rocks'
-        return urljoin(url, 'data', name)
-
+    def _get_data_source(self, name):
+        url = urljoin('http://assets.lsst.rocks/data/', name)
+        return urlopen(url)
 
 class Berkeley20(SampleOpenCluster):
     """
@@ -52,8 +52,9 @@ class Berkeley20(SampleOpenCluster):
         return self.coord.distance.value
 
     def cds_stars(cls):
-        path = cls._get_data_path('berkeley20.tsv')
-        with open(path, newline='') as f:
+        data_source = cls._get_data_source('berkeley20.tsv')
+        with data_source as f:
+            
             reader = csv.reader(f, delimiter=';')
             b20p = [row for row in reader]
             b20rawdata = b20p[41:]
@@ -65,9 +66,9 @@ class Berkeley20(SampleOpenCluster):
             return (x, y)
 
     def stars(cls):
-        path = cls._get_data_path('berkeley20-durgapal.dat')
-        with open(path, newline='') as f:
-            lines = f.readlines()
+        data_source = cls._get_data_source('berkeley20-durgapal.dat')
+        with data_source as f:
+            lines = [l.decode('utf-8')[:-1] for l in f.readlines()]
             data = []
             pattern = re.compile('^\s+|\s* \s*|\s+$')
             for l in lines:
@@ -91,9 +92,9 @@ class Berkeley20(SampleOpenCluster):
         return np.array([tuple(values)], dtype=cls._dtype)
 
     def to_array(cls):
-        path = cls._get_data_path('berkeley20-durgapal.dat')
-        with open(path, newline='') as f:
-            lines = f.readlines()
+        data_source = cls._get_data_source('berkeley20-durgapal.dat')
+        with data_source as f:
+            lines = [l.decode('utf-8')[:-1] for l in f.readlines()]
             data = np.empty((0, 1), dtype=cls._dtype)
             pattern = re.compile('^\s+|\s* \s*|\s+$')
             for l in lines:
@@ -112,9 +113,9 @@ class NGC2849(SampleOpenCluster):
                      distance=6110 * u.parsec)
 
     def stars(cls):
-        path = self._get_data_path('ngc2849-kyeong.dat')
-        with open(path, newline='') as f:
-            lines = f.readlines()
+        data_source = self._get_data_source('ngc2849-kyeong.dat')
+        with data_source as f:
+            lines = [l.decode('utf-8')[:-1] for l in f.readlines()]
             lines = lines[2:]
             data = []
             pattern = re.compile('^\s+|\s* \s*|\s+$')
