@@ -16,7 +16,7 @@ git clone https://github.com/cds-astro/ipyaladin.git /opt/ipyaladin
 (cd /opt/ipyaladin/js && jupyter labextension install)
 
 # Clone our educational notebooks
-git clone https://github.com/lsst-epo/hr-diagram-investigations.git /opt/hr-diagram-activity
+git clone https://github.com/lsst-epo/investigations.git /opt/investigations
 
 # Gulp in bokeh requires a ridiculously recent NodeJS
 curl -o /opt/node.xz https://nodejs.org/dist/v8.10.0/node-v8.10.0-linux-x64.tar.xz
