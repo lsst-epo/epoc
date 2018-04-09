@@ -32,7 +32,7 @@ def _telescope_pointing_widget(cluster_name):
     html += '<td><b>Right ascension</b></td>'
     html += '<td><b>Declination</b></td>'
     html += '</tr></thead><tbody><tr>'
-    html += '<td><img src="files/data/sphere.png"></td>'
+    html += '<td><img src="http://assets.lsst.rocks/data/sphere.png"></td>'
     html += '<td>%s</td>' % cluster_name
     html += '<td>20221274993</td>'
     html += '<td>05h 32m 37s</td>'

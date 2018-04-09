@@ -1,6 +1,8 @@
 import csv
 import os
 import re
+from urllib.request import urlopen
+from urllib.parse import urljoin
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -19,11 +21,10 @@ class OpenCluster(object):
         NotImplemented()
 
 
-class SampleOpenCluster(OpenCluster):        
-    def _get_data_path(self, name):
-        modPath = os.path.dirname(__file__)
-        return os.path.join(modPath, 'sample_data', name)
-
+class SampleOpenCluster(OpenCluster):
+    def _get_data_source(self, name):
+        url = urljoin('http://assets.lsst.rocks/data/', name)
+        return urlopen(url)
 
 class Berkeley20(SampleOpenCluster):
     """
@@ -39,7 +40,7 @@ class Berkeley20(SampleOpenCluster):
     Z = 0.008  # Z_sun
     d_modulus = 14.7  # (m - M)
     name = 'Berkeley 20'
-    image_path = 'notebooks/data/berkeley20-square.png'
+    image_path = 'http://assets.lsst.rocks/data/berkeley20-square.png'
     _dtype = [('id', 'i'), ('x', 'f'), ('y', 'f'),
               ('u_b', 'f'), ('b_v', 'f'), ('v_r', 'f'),
               ('v_i', 'f'), ('err_u_b', 'f'),
@@ -51,8 +52,9 @@ class Berkeley20(SampleOpenCluster):
         return self.coord.distance.value
 
     def cds_stars(cls):
-        path = cls._get_data_path('berkeley20.tsv')
-        with open(path, newline='') as f:
+        data_source = cls._get_data_source('berkeley20.tsv')
+        with data_source as f:
+            
             reader = csv.reader(f, delimiter=';')
             b20p = [row for row in reader]
             b20rawdata = b20p[41:]
@@ -64,9 +66,9 @@ class Berkeley20(SampleOpenCluster):
             return (x, y)
 
     def stars(cls):
-        path = cls._get_data_path('berkeley20-durgapal.dat')
-        with open(path, newline='') as f:
-            lines = f.readlines()
+        data_source = cls._get_data_source('berkeley20-durgapal.dat')
+        with data_source as f:
+            lines = [l.decode('utf-8')[:-1] for l in f.readlines()]
             data = []
             pattern = re.compile('^\s+|\s* \s*|\s+$')
             for l in lines:
@@ -90,9 +92,9 @@ class Berkeley20(SampleOpenCluster):
         return np.array([tuple(values)], dtype=cls._dtype)
 
     def to_array(cls):
-        path = cls._get_data_path('berkeley20-durgapal.dat')
-        with open(path, newline='') as f:
-            lines = f.readlines()
+        data_source = cls._get_data_source('berkeley20-durgapal.dat')
+        with data_source as f:
+            lines = [l.decode('utf-8')[:-1] for l in f.readlines()]
             data = np.empty((0, 1), dtype=cls._dtype)
             pattern = re.compile('^\s+|\s* \s*|\s+$')
             for l in lines:
@@ -111,9 +113,9 @@ class NGC2849(SampleOpenCluster):
                      distance=6110 * u.parsec)
 
     def stars(cls):
-        path = self._get_data_path('ngc2849-kyeong.dat')
-        with open(path, newline='') as f:
-            lines = f.readlines()
+        data_source = self._get_data_source('ngc2849-kyeong.dat')
+        with data_source as f:
+            lines = [l.decode('utf-8')[:-1] for l in f.readlines()]
             lines = lines[2:]
             data = []
             pattern = re.compile('^\s+|\s* \s*|\s+$')
@@ -224,13 +226,6 @@ def pprint(arr, columns=('temp', 'lum'),
     df.columns = names
     return df
 
-
-def get_sample_file_location(name):
-    """
-    Given a sample file name, return the path to that file.
-    """
-    modPath = os.path.dirname(__file__)
-    return os.path.join(modPath, 'sample_data', name)
 
 
 L_ZERO_POINT = 3.0128 * pow(10, 28)  # units to add:  * u.watt
