@@ -5,6 +5,7 @@ set -e
 
 # Install astropixie API library
 pip3 install /opt/astropixie
+pip3 install /opt/astropixie-widgets
 
 # Install healpy and astroquery
 pip3 install healpy astroquery==0.3.7

@@ -2,6 +2,7 @@ FROM lsstsqre/jld-lab:latest
 
 # Add our astropixie API library
 ADD astropixie /opt/astropixie
+ADD astropixie-widgets /opt/astropixie-widgets
 
 # Add the hook that is called on jupyterlab startup to set the path
 # to the notebooks.

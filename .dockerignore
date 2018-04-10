@@ -7,3 +7,4 @@
 # Add files by exception here.
 !jupyter-image/*
 !astropixie/*
+!astropixie-widgets/*
