@@ -38,3 +38,5 @@ python3 setup.py develop --build-js
 # to be routed to port d on the container.
 pip3 install git+https://github.com/jupyterhub/nbserverproxy
 jupyter serverextension enable --py nbserverproxy
+
+jupyter labextension install jupyterlab_hidecode
