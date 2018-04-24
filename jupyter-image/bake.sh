@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 # This script runs inside the container to add all our special sauce.
 
