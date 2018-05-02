@@ -7,6 +7,8 @@ from urllib.parse import urljoin
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
+from astroquery.sdss import SDSS
+
 import numpy as np
 
 import pandas as pd
@@ -25,6 +27,7 @@ class SampleOpenCluster(OpenCluster):
     def _get_data_source(self, name):
         url = urljoin('http://assets.lsst.rocks/data/', name)
         return urlopen(url)
+
 
 class Berkeley20(SampleOpenCluster):
     """
@@ -102,6 +105,71 @@ class Berkeley20(SampleOpenCluster):
                 newrow = cls._dtype_row(data, values)
                 data = np.row_stack((data, newrow))
             return data
+
+
+class SDSSRegion(Berkeley20):
+    """
+    An SDSS (ugriz) region of the sky. Expects PSFs and can be used with
+    astropixie widgets.
+    
+    Default to Berkeley 20, but accept astropy tables.
+    """
+
+    _dtype = [('id', 'i'), ('u', 'f'), ('g', 'f'), ('r', 'f'), ('i', 'f'),
+              ('g_r', 'f'), ('r_i', 'f'),
+              ('lum', 'f'), ('temp', 'f')]
+
+    def __init__(self, table=None):
+        if not table:
+            self.cat = self.get_cat()
+        else:
+            self.cat = table
+
+    def get_cat(self):
+        query = """
+SELECT TOP 2000
+       p.objID,
+       p.ra,
+       p.dec,
+       p.u,
+       p.g,
+       p.r,
+       p.i,
+       p.z
+FROM PhotoPrimary AS p
+JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 1.32) AS r ON r.objID = p.objID
+WHERE p.clean = 1 and p.probPSF = 1
+        """
+        return SDSS.query_sql(query)
+
+    def stars(self):
+        data = []
+        for row in self.cat:
+            g = row['g']
+            r = row['r']
+            # Use V and R so the data is similar to the VizieR data.
+            V = g - 0.5784*(g - r) - 0.0038  # sigma = 0.0054
+            R = r - 0.1837*(g - r) - 0.0971  # sigma = 0.0106
+            data.append([V, V - R])
+        x = [data[i][1] for i in range(len(data))]
+        y = [data[i][0] for i in range(len(data))]
+        return (x, y)
+
+    def to_array(self):
+        values = ['id', 'u', 'g', 'r', 'i', 'g_r', 'r_i', 'lum', 'temp']
+        data = np.empty((0, 1), dtype=self._dtype)
+        for r in self.cat:
+            v = []
+            v.append(r['objID'])
+            v.append(r['u'])
+            v.append(r['g'])
+            v.append(r['r'])
+            v.append(r['i'])
+            v.append(r['g'] - r['r'])
+            v.append(r['r'] - r['i'])
+            newrow = self._dtype_row(data, v)
+            data = np.row_stack((data, newrow))
+        return data
 
 
 class NGC2849(SampleOpenCluster):

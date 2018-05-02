@@ -49,7 +49,7 @@ def _diagram(plot_figure, source=None, color='black', line_color='#444444',
     logging.info(type(source))
     logging.info(source)
     plot_figure.circle(x='x', y='y', source=source,
-                       size=8, color=color, alpha=1, name=name,
+                       size=4, color=color, alpha=1, name=name,
                        line_color=line_color, line_width=0.5)
     plot_figure.xaxis.axis_label = xaxis_label
     plot_figure.yaxis.axis_label = yaxis_label
@@ -194,6 +194,7 @@ def hr_diagram_figure(cluster):
     pf = figure(y_axis_type='log', x_range=x_range, name='hr',
                 tools='box_select,lasso_select,reset',
                 title='H-R Diagram for {0}'.format(cluster.name))
+    
     _diagram(source=source, plot_figure=pf, name='hr',
              color={'field': 'color', 'transform': color_mapper},
              xaxis_label='Temperature (Kelvin)',

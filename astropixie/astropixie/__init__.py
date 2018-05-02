@@ -1,5 +1,5 @@
-import astropixie.catalog_service
-import astropixie.sample_catalog_provider
+from . import catalog_service
+from . import sample_catalog_provider
 
 from . import data
 
@@ -7,5 +7,5 @@ def hello_universe():
     return "Hello universe!"
 
 
-provider = astropixie.sample_catalog_provider.SampleCatalogProvider()
-Catalog = astropixie.catalog_service.CatalogService(provider)
+provider = sample_catalog_provider.SampleCatalogProvider()
+Catalog = catalog_service.CatalogService(provider)
