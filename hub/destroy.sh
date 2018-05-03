@@ -4,10 +4,5 @@ set -x
 
 CLUSTER_NAME=$1
 
-# Delete the jupyterhub deployment
-helm delete jupyterhub --purge
-
-# Delete the cluster
-gcloud container clusters delete $CLUSTER_NAME \
-    --zone us-central1-b \
-    --quiet
+./destroy_hub.sh
+./destroy_cluster.sh $CLUSTER_NAME
