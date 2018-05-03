@@ -1,2 +1,12 @@
 proxy:
   secretToken: 6b8d6efc6d1186d92a579617fbb485fb99a68166e148c113ef2b0aef81ec0b78
+hub:
+  extraEnv:
+    JUPYTER_ENABLE_LAB: 1
+  extraConfig: |
+    c.KubeSpawner.cmd = ['jupyter-labhub']
+singleuser:
+  image:
+    name: lsstepo/small
+    tag: d20180502
+  defaultUrl: "/lab"
