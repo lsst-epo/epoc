@@ -1,9 +1,9 @@
 from setuptools import setup
 
 setup(name='astropixie-widgets',
-      version='0.1.3',
+      version='0.1.4',
       description='LSST EPO ',
-      url='https://github.com/lsst-epo/vela/astropixie-hr',
+      url='https://github.com/lsst-epo/vela/astropixie-widgets',
       author='LSST EPO Team',
       author_email='epo-team@lists.lsst.org',
       license='MIT',
@@ -12,11 +12,11 @@ setup(name='astropixie-widgets',
       package_data={'astropixie': ['sample_data/*']},
       install_requires=[
           'astropixie',
-          'astropy==3.0.1',
+          'astropy>=3.0.1,<3.1',
           'astroquery',
           'bokeh>=0.12.15',
           # 'ipyaladin',
-          'numpy==1.14.2',
+          'numpy>=1.14.2,<1.16',
           'pandas',
           'pytest',
           'scipy'
