@@ -11,4 +11,5 @@ helm repo update
 helm install jupyterhub/jupyterhub \
     --version=v0.6 \
     --name=jupyterhub \
-    --values=hub-config.yaml
+    --values=hub-config.yaml \
+    --wait
