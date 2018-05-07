@@ -4,9 +4,12 @@ hub:
   extraEnv:
     JUPYTER_ENABLE_LAB: 1
   extraConfig: |
-    c.KubeSpawner.cmd = ['jupyter-labhub']
+    c.KubeSpawner.cmd = ['start-singleuser.sh']
 singleuser:
   image:
     name: lsstepo/small
     tag: d20180502
-  defaultUrl: "/lab"
+  defaultUrl: '/lab'
+  #extraEnv:
+  #  GRANT_SUDO: 1
+  #uid: 0
