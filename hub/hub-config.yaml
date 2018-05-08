@@ -15,3 +15,9 @@ singleuser:
   uid: 0
   storage:
     type: none
+  memory:
+    guarantee: 256M
+    limit: 1G
+  cpu:
+    guarantee: .1
+    limit: 1
