@@ -10,6 +10,8 @@ singleuser:
     name: lsstepo/small
     tag: d20180502
   defaultUrl: '/lab'
-  #extraEnv:
-  #  GRANT_SUDO: 1
-  #uid: 0
+  extraEnv:
+    GRANT_SUDO: 1
+  uid: 0
+  storage:
+    type: none
