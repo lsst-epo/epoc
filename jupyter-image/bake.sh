@@ -2,6 +2,9 @@
 # This script runs inside the container to add all our special sauce.
 set -ex
 
+# Add a file that stores the creation time, just in case.
+echo Created on `date +%Y-%m-%d` > /opt/create_date
+
 # Install healpy and astroquery
 pip install healpy astroquery==0.3.7
 
