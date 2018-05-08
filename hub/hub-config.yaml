@@ -8,7 +8,7 @@ hub:
 singleuser:
   image:
     name: lsstepo/small
-    tag: d20180502
+    tag: d20180507
   defaultUrl: '/lab'
   extraEnv:
     GRANT_SUDO: 1
