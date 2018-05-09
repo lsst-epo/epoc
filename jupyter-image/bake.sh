@@ -39,3 +39,4 @@ jupyter lab build
 
 # Clone our educational notebooks
 git clone https://github.com/lsst-epo/investigations.git /opt/investigations
+cp -r /opt/investigations ~jovyan/investigations
