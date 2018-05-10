@@ -4,14 +4,16 @@ import argparse
 import json
 
 parser = argparse.ArgumentParser(description='Configure DNS')
-parser.add_argument('host')
+parser.add_argument('hostname')
 parser.add_argument('ip')
 args = parser.parse_args()
+
+fqdn = args.hostname + '.lsst.rocks'
 
 with open('dns-template.json') as f:
   dnsTemplate = json.load(f)
 
-dnsTemplate['Changes'][0]['ResourceRecordSet']['Name'] = args.host
+dnsTemplate['Changes'][0]['ResourceRecordSet']['Name'] = fqdn
 dnsTemplate['Changes'][0]['ResourceRecordSet']['ResourceRecords'][0]['Value'] = args.ip
 
 dnsTemplate['Changes'][0]['Action'] = 'UPSERT'

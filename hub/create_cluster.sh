@@ -27,3 +27,9 @@ kubectl patch deployment tiller-deploy \
     --namespace=kube-system \
     --type=json \
     --patch='[{"op": "add", "path": "/spec/template/spec/containers/0/command", "value": ["/tiller", "--listen=localhost:44134"]}]'
+
+# The patch deployment seems to restart the pod, which takes
+# a few seconds, and there's an annoying startup transient
+# where we can't do a deploy until it comes up, and there's
+# no way to wait.  So sleep for a bit here to let it come up.
+sleep 15

@@ -4,11 +4,13 @@ import argparse
 import yaml
 
 parser = argparse.ArgumentParser(description='Create hub-config.yaml')
-parser.add_argument('host')
+parser.add_argument('hostname')
 parser.add_argument('secretToken')
 parser.add_argument('key')
 parser.add_argument('cert')
 args = parser.parse_args()
+
+fqdn = args.host + '.lsst.rocks'
 
 with open(args.key) as f:
   privKey = f.read()
@@ -23,7 +25,7 @@ proxyConfig = {
   'secretToken': args.secretToken,
   'https': {
     'type' : 'manual',
-    'hosts': [args.host],
+    'hosts': [fqdn],
     'manual' : {
       'key': privKey,
       'cert': cert
