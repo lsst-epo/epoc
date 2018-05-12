@@ -1,15 +1,15 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: jenkins-ingress
+  name: vault-ingress
   namespace: default
   annotations:
     kubernetes.io/ingress.class: nginx
 spec:
   tls:
     - hosts:
-        - battle-bridge.lsst.rocks
+        - vault.lsst.rocks
       secretName: wildcard-lsst-rocks
   backend:
-    serviceName: jenkins-jenkins
-    servicePort: 8080
+    serviceName: vault-vault
+    servicePort: 8200
