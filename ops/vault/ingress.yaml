@@ -10,6 +10,11 @@ spec:
     - hosts:
         - vault.lsst.rocks
       secretName: wildcard-lsst-rocks
-  backend:
-    serviceName: vault-vault
-    servicePort: 8200
+  rules:
+    - host: vault.lsst.rocks
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: vault-vault
+              servicePort: 8200

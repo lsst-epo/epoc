@@ -10,6 +10,11 @@ spec:
     - hosts:
         - battle-bridge.lsst.rocks
       secretName: wildcard-lsst-rocks
-  backend:
-    serviceName: jenkins-jenkins
-    servicePort: 8080
+  rules:
+    - host: battle-bridge.lsst.rocks
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: jenkins-jenkins
+              servicePort: 8080
