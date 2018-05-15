@@ -32,4 +32,4 @@ kubectl patch deployment tiller-deploy \
 # a few seconds, and there's an annoying startup transient
 # where we can't do a deploy until it comes up, and there's
 # no way to wait.  So sleep for a bit here to let it come up.
-sleep 15
+sleep 30
