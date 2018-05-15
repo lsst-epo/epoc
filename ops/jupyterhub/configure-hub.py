@@ -10,7 +10,7 @@ parser.add_argument('key')
 parser.add_argument('cert')
 args = parser.parse_args()
 
-fqdn = args.host + '.lsst.rocks'
+fqdn = args.hostname + '.lsst.rocks'
 
 with open(args.key) as f:
   privKey = f.read()
