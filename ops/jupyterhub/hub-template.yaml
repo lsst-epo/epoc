@@ -5,7 +5,7 @@ hub:
     c.KubeSpawner.cmd = ['start-singleuser.sh']
 singleuser:
   image:
-    name: lsstepo/small
+    name: lsstepo/jupyterlab
     tag: latest
   defaultUrl: '/lab'
   extraEnv:
