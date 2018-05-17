@@ -28,13 +28,5 @@ linking with the jobs, the ID should be:
 Add the token created from vault to the token field, and auth
 should be setup.
 
-Last, set the timezone to be Phoenix, instead of UTC.  You can
-do this in "Manage Jenkins" -> "Script console" and running
-the following groovy script:
-
-System.setProperty('org.apache.commons.jelly.tags.fmt.timeZone', 'America/Phoenix')
-
-Now Jenkins time will be Tucson time.
-
 After this, you can now sync the jobs to upload them and start
 running them.

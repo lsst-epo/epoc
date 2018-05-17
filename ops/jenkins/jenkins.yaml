@@ -12,6 +12,7 @@ Master:
     - github-oauth
     - hashicorp-vault-plugin
     - ws-cleanup
+  JavaOpts: "-Duser.timezone=America/Phoenix"
 Agent:
   AlwaysPullImage: true
   Cpu: 0m
