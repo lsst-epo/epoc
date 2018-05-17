@@ -15,4 +15,6 @@ RELEASE_TAG=${1:-`date +%Y%m%d`}
 echo "Creating daily release lsstepo/$IMAGE_NAME:d$RELEASE_TAG"
 
 docker tag lsstepo/jupyterlab:dev lsstepo/$IMAGE_NAME:d$RELEASE_TAG
+docker tag lsstepo/jupyterlab:dev lsstepo/$IMAGE_NAME:latest
 docker push lsstepo/$IMAGE_NAME:d$RELEASE_TAG
+docker push lsstepo/$IMAGE_NAME:latest

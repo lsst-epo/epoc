@@ -1,0 +1,18 @@
+{
+	"Comment": "DNS for Jupyter Helm deployment", 
+	"Changes": [
+	    {
+		"Action": "", 
+		"ResourceRecordSet": {
+		    "Name": "", 
+		    "Type": "A", 
+		    "TTL": 60, 
+		    "ResourceRecords": [
+			{
+			    "Value": ""
+			}
+		    ]
+		}
+	    }
+	]
+}

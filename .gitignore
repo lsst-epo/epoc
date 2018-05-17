@@ -4,3 +4,6 @@
 *~
 #*#
 .#*
+ops/jupyterhub/dns-delete.json
+ops/jupyterhub/dns-upsert.json
+ops/jupyterhub/hub-config.yaml

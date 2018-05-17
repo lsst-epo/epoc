@@ -1,0 +1,21 @@
+hub:
+  extraEnv:
+    JUPYTER_ENABLE_LAB: 1
+  extraConfig: |
+    c.KubeSpawner.cmd = ['start-singleuser.sh']
+singleuser:
+  image:
+    name: lsstepo/jupyterlab
+    tag: latest
+  defaultUrl: '/lab'
+  extraEnv:
+    GRANT_SUDO: 1
+  uid: 0
+  storage:
+    type: none
+  memory:
+    guarantee: 256M
+    limit: 1G
+  cpu:
+    guarantee: .1
+    limit: 1

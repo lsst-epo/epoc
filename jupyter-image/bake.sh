@@ -1,42 +1,42 @@
 #!/bin/bash
+# This script runs inside the container to add all our special sauce.
 set -ex
 
-# This script runs inside the container to add all our special sauce.
-
-# Install astropixie API library
-pip3 install /opt/astropixie
-pip3 install /opt/astropixie-widgets
+# Add a file that stores the creation time, just in case.
+echo Created on `date +%Y-%m-%d` > /opt/create_date
 
 # Install healpy and astroquery
-pip3 install healpy astroquery==0.3.7
+pip install healpy astroquery==0.3.7
 
 # Install ipyaladin
 git clone https://github.com/cds-astro/ipyaladin.git /opt/ipyaladin
 (cd /opt/ipyaladin/js && npm install --unsafe-perm)
 (cd /opt/ipyaladin && pip install -e .)
-(cd /opt/ipyaladin/js && jupyter labextension install)
+(cd /opt/ipyaladin/js && jupyter labextension install --no-build)
 
-# Clone our educational notebooks
-git clone https://github.com/lsst-epo/investigations.git /opt/investigations
-
-# Gulp in bokeh requires a ridiculously recent NodeJS
-curl -o /opt/node.xz https://nodejs.org/dist/v8.10.0/node-v8.10.0-linux-x64.tar.xz
-(cd /opt && tar xvfJ node.xz)
-export PATH=/opt/node-v8.10.0-linux-x64/bin:$PATH
-
-rm -rf /tmp/phantomjs
-pip3 uninstall -y bokeh
-
-git clone https://github.com/bokeh/bokeh.git
-cd bokeh/bokehjs
-npm install --no-save --unsafe-perm
-node ./prepare.js
-cd ..
-python3 setup.py develop --build-js
+# Install bokeh
+pip install bokeh
+jupyter labextension install jupyterlab_bokeh --no-build
 
 # Install nbserverproxy.  This allows for URLs like /user/x/proxy/d
 # to be routed to port d on the container.
-pip3 install git+https://github.com/jupyterhub/nbserverproxy
+pip install git+https://github.com/jupyterhub/nbserverproxy
 jupyter serverextension enable --py nbserverproxy
 
-jupyter labextension install jupyterlab_hidecode
+# Install jupyter extensions.
+jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
+
+# Install astropixie API library
+pip install /opt/astropixie
+pip install /opt/astropixie-widgets
+
+# Install our own EPO extensions.
+jupyter labextension install jupyterlab_hidecode --no-build
+
+# Final build
+jupyter lab clean
+jupyter lab build
+
+# Clone our educational notebooks
+git clone https://github.com/lsst-epo/investigations.git /opt/investigations
+cp -r /opt/investigations ~jovyan/investigations
