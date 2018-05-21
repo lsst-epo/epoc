@@ -31,7 +31,9 @@ pip install /opt/astropixie
 pip install /opt/astropixie-widgets
 
 # Install our own EPO extensions.
-jupyter labextension install jupyterlab_hidecode --no-build
+git clone https://github.com/lsst-epo/jupyterlab_hidecode.git /opt/hide_code
+(cd /opt/hide_code && npm install && npm run build)
+jupyter labextension link /opt/hide_code
 
 # Final build
 jupyter lab clean
@@ -40,3 +42,4 @@ jupyter lab build
 # Clone our educational notebooks
 git clone https://github.com/lsst-epo/investigations.git /opt/investigations
 cp -r /opt/investigations ~jovyan/investigations
+chown -R jovyan ~jovyan/investigations
