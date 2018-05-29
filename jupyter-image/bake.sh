@@ -9,7 +9,7 @@ echo Created on `date +%Y-%m-%d` > /opt/create_date
 pip install healpy astroquery==0.3.7
 
 # Install ipyaladin
-git clone https://github.com/cds-astro/ipyaladin.git /opt/ipyaladin
+git clone https://github.com/lsst-epo/ipyaladin.git /opt/ipyaladin
 (cd /opt/ipyaladin/js && npm install --unsafe-perm)
 (cd /opt/ipyaladin && pip install -e .)
 (cd /opt/ipyaladin/js && jupyter labextension install --no-build)

@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='astropixie',
-      version='0.1.4',
+      version='0.1.6',
       description='LSST EPO python library.',
       url='https://github.com/lsst-epo/vela/astropixie',
       author='LSST EPO Team',
@@ -13,6 +13,6 @@ setup(name='astropixie',
       install_requires=[
           'astropy>=3.0.1,<3.1',
           'numpy>=1.14,<1.15',
-          'pandas>=0.22,<0.23',
+          'pandas>=0.23,<0.24',
           'pytest>=3.5,<3.6'
       ])

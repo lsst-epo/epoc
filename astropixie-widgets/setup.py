@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='astropixie-widgets',
-      version='0.1.4',
+      version='0.1.6',
       description='LSST EPO ',
       url='https://github.com/lsst-epo/vela/astropixie-widgets',
       author='LSST EPO Team',
@@ -11,10 +11,10 @@ setup(name='astropixie-widgets',
       include_package_data=True,
       package_data={'astropixie': ['sample_data/*']},
       install_requires=[
-          'astropixie',
+          'astropixie==0.1.6',
           'astropy>=3.0.1,<3.1',
           'astroquery',
-          'bokeh>=0.12.15',
+          'bokeh>=0.12.16',
           # 'ipyaladin',
           'numpy>=1.14.2,<1.16',
           'pandas',
