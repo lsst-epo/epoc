@@ -60,7 +60,6 @@ def _diagram(plot_figure, source=None, color='black', line_color='#444444',
     plot_figure.circle(x='x', y='y', source=source,
                        size=4, color=color, alpha=1, name=name,
                        line_color=line_color, line_width=0.5)
-    plot_figure._session = session
     plot_figure.xaxis.axis_label = xaxis_label
     plot_figure.yaxis.axis_label = yaxis_label
     plot_figure.yaxis.formatter = NumeralTickFormatter()

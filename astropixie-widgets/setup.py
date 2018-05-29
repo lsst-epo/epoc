@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='astropixie-widgets',
-      version='0.1.6.1',
+      version='0.1.6.2',
       description='LSST EPO ',
       url='https://github.com/lsst-epo/vela/astropixie-widgets',
       author='LSST EPO Team',
