@@ -6,7 +6,7 @@ set -ex
 echo Created on `date +%Y-%m-%d` > /opt/create_date
 
 # Install healpy and astroquery
-pip install healpy astroquery==0.3.7
+pip install healpy astroquery==0.3.8
 
 # Install ipyaladin
 git clone https://github.com/lsst-epo/ipyaladin.git /opt/ipyaladin
