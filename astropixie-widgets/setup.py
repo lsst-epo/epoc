@@ -13,7 +13,7 @@ setup(name='astropixie-widgets',
       install_requires=[
           'astropixie==0.1.6',
           'astropy>=3.0.1,<3.1',
-          'astroquery',
+          'astroquery>=0.3.8',
           'bokeh>=0.12.16',
           # 'ipyaladin',
           'numpy>=1.14.2,<1.16',
