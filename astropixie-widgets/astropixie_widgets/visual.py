@@ -508,6 +508,8 @@ WHERE p.clean = 1 and p.probPSF = 1
         
     def show(self):
         try:
+            widgets.widget.display(self.aladin)
+            self.aladin.add_table(self.cat)
             show(self._hr_diagram_select, notebook_url=config.jupyter_proxy_url)
         except Exception as e:
             logger.debug(e)
