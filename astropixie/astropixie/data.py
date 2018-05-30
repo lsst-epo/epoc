@@ -115,7 +115,7 @@ class SDSSRegion(Berkeley20):
     Default to Berkeley 20, but accept astropy tables.
     """
 
-    _dtype = [('id', 'i'), ('u', 'f'), ('g', 'f'), ('r', 'f'), ('i', 'f'),
+    _dtype = [('id', np.int64), ('u', 'f'), ('g', 'f'), ('r', 'f'), ('i', 'f'),
               ('g_r', 'f'), ('r_i', 'f'),
               ('lum', 'f'), ('temp', 'f')]
 
@@ -124,6 +124,7 @@ class SDSSRegion(Berkeley20):
             self.cat = self.get_cat()
         else:
             self.cat = table
+        self.raw = self.cat
 
     def get_cat(self):
         query = """
@@ -169,6 +170,12 @@ WHERE p.clean = 1 and p.probPSF = 1
             v.append(r['r'] - r['i'])
             newrow = self._dtype_row(data, v)
             data = np.row_stack((data, newrow))
+        return data
+
+    def ids(self):
+        data = []
+        for row in self.cat:
+            data.append(row['objID'])
         return data
 
 
