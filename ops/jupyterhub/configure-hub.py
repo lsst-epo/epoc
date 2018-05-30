@@ -55,6 +55,7 @@ if githubClientId and githubClientSecret:
 configMap['proxy'] = proxyConfig
 configMap['singleuser']['image']['name'] = imageName
 configMap['singleuser']['image']['tag'] = releaseTag
+configMap['singleuser']['extraEnv']['EXTERNAL_URL'] = 'https://' + fqdn
 
 with open('hub-config.yaml', 'w') as f:
   f.write(yaml.dump(configMap))
