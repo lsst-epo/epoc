@@ -15,7 +15,7 @@ from bokeh.models import CategoricalColorMapper, ColumnDataSource,\
 from bokeh.models.formatters import NumeralTickFormatter
 from bokeh.models.selections import Selection
 from bokeh.models.widgets import Slider, TextInput, Div
-from bokeh.plotting import figure, show
+from bokeh.plotting import figure
 
 
 import ipyaladin
@@ -28,7 +28,7 @@ import pandas as pd
 from astropixie.data import Berkeley20, NGC2849, get_hr_data, L_ZERO_POINT,\
     SDSSRegion
 
-from . import config
+from .config import show_with_bokeh_server
 from .science import absolute_mag, distance, luminosity, teff, color
 
 
@@ -73,7 +73,7 @@ def cc_diagram(cluster_name):
     y_range = [max(y) + 0.5, min(y) - 0.25]
     pf = figure(y_range=y_range, title=cluster_name)
     _diagram(x, y, pf)
-    show(pf, notebook_url=config.jupyter_proxy_url)
+    show_with_bokeh_server(pf)
 
 
 def m_M_compare(cluster):
@@ -89,7 +89,7 @@ def m_M_compare(cluster):
     _diagram(source=source_1, plot_figure=pf, name='app', color='purple',
              line_color='#993333')
     _diagram(source=source_2, plot_figure=pf, name='abs', color='#444444')
-    show(pf, notebook_url=config.jupyter_proxy_url)
+    show_with_bokeh_server(pf)
 
 
 def m_M_compare_interactive_b20(doc):
@@ -168,12 +168,7 @@ def hr_diagram(cluster_name, output=None):
     """
     cluster = get_hr_data(cluster_name)
     pf = hr_diagram_figure(cluster)
-    if output:
-        with output:
-            h = show(pf, notebook_handle=True, notebook_url=config.jupyter_proxy_url)
-    else:
-        h = show(pf, notebook_handle=True, notebook_url=config.jupyter_proxy_url)
-    return h
+    show_with_bokeh_server(pf)
 
 
 def skyimage_figure(cluster):
@@ -240,7 +235,7 @@ def hr_diagram_from_data(data, x_range, y_range):
              color={'field': 'color', 'transform': color_mapper},
              xaxis_label='Temperature (Kelvin)',
              yaxis_label='Luminosity (solar units)')
-    show(pf, notebook_url=config.jupyter_proxy_url)
+    show_with_bokeh_server(pf)
 
 
 def cluster_text_input(cluster, title=None):
@@ -265,11 +260,7 @@ def hr_diagram_skyimage(cluster_name, output=None):
     pf_image = skyimage_figure(cluster)
     layout = column(text_input, _telescope_pointing_widget(cluster.name),
                     row(pf_image, pf), sizing_mode='scale_width')
-    if output:
-        with output:
-            h = show(layout, notebook_handle=True, notebook_url=config.jupyter_proxy_url)
-    else:
-        h = show(layout, notebook_handle=True, notebook_url=config.jupyter_proxy_url)
+    show_with_bokeh_server(layout)
 
 
 def ipywidget_box(bokeh_widget):
@@ -377,7 +368,7 @@ def hr_diagram_selection(cluster_name):
         }
         source_selected.change.emit();
         """)
-    show(row(pf, pf_selected), notebook_url=config.jupyter_proxy_url)
+    show_with_bokeh_server(row(pf, pf_selected))
 
 
 def hr_diagram_select(cluster):
@@ -411,7 +402,7 @@ def hr_diagram_select(cluster):
         logger.debug('lasso update!')
 
     session.data_source.on_change('selected', update)
-    show(pf, notebook_url=config.jupyter_proxy_url)
+    show_with_bokeh_server(pf)
 
 
 class SHRD():
@@ -510,7 +501,7 @@ WHERE p.clean = 1 and p.probPSF = 1
         try:
             widgets.widget.display(self.aladin)
             self.aladin.add_table(self.cat)
-            show(self._hr_diagram_select, notebook_url=config.jupyter_proxy_url)
+            show_with_bokeh_server(self._hr_diagram_select)
         except Exception as e:
             logger.debug(e)
 
