@@ -198,13 +198,12 @@ def hr_diagram_figure(cluster):
     source = ColumnDataSource(data=dict(x=x, y=y, color=colors))
     
     pf = figure(y_axis_type='log', x_range=x_range, name='hr',
-                tools='box_select,lasso_select,reset',
+                tools='box_select,lasso_select,reset,hover',
                 title='H-R Diagram for {0}'.format(cluster.name))
     pf.select(BoxSelectTool).select_every_mousemove = False
     pf.select(LassoSelectTool).select_every_mousemove = False
-    hover = self.pf.select(HoverTool)[0]
-    hover.tooltips = [("id", "@id{0}"),
-                      ("Temperature (Kelvin)", "@x{0}"),
+    hover = pf.select(HoverTool)[0]
+    hover.tooltips = [("Temperature (Kelvin)", "@x{0}"),
                       ("Luminosity (solar units)", "@y{0.00}")]
     _diagram(source=source, plot_figure=pf, name='hr',
              color={'field': 'color', 'transform': color_mapper},
@@ -473,7 +472,7 @@ WHERE p.clean = 1 and p.probPSF = 1
         yaxis_label = 'Luminosity (solar units)'
         line_color = '#444444'
         self.pf = figure(y_axis_type='log', x_range=x_range,
-                         tools='lasso_select,box_select,reset',
+                         tools='lasso_select,box_select,reset,hover',
                          title='H-R Diagram for {0}'.format(self.region.name))
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         self.pf.select(LassoSelectTool).select_every_mousemove = False
