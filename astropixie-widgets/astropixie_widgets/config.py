@@ -45,6 +45,7 @@ def setup_notebook(debug=False):
     # this means that you're running JupyterHub not with Hub in k8s,
     # and not using run_local.sh (which sets it to empty).
     if 'JUPYTERHUB_SERVICE_PREFIX' not in os.environ:
+        global jupyter_proxy_url
         jupyter_proxy_url = 'localhost:8888'
 
 
