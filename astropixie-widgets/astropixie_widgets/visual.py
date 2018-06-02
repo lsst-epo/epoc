@@ -11,7 +11,8 @@ from astroquery.sdss import SDSS
 from bokeh.events import Reset
 from bokeh.layouts import row, column, widgetbox
 from bokeh.models import CategoricalColorMapper, ColumnDataSource,\
-    CustomJS, LassoSelectTool, BoxSelectTool, Range1d, ResetTool
+    CustomJS, LassoSelectTool, BoxSelectTool, Range1d, ResetTool,\
+    HoverTool
 from bokeh.models.formatters import NumeralTickFormatter
 from bokeh.models.selections import Selection
 from bokeh.models.widgets import Slider, TextInput, Div
@@ -58,7 +59,7 @@ def _diagram(plot_figure, source=None, color='black', line_color='#444444',
     to create an H-R diagram.
     """
     plot_figure.circle(x='x', y='y', source=source,
-                       size=4, color=color, alpha=1, name=name,
+                       size=5, color=color, alpha=1, name=name,
                        line_color=line_color, line_width=0.5)
     plot_figure.xaxis.axis_label = xaxis_label
     plot_figure.yaxis.axis_label = yaxis_label
@@ -197,10 +198,13 @@ def hr_diagram_figure(cluster):
     source = ColumnDataSource(data=dict(x=x, y=y, color=colors))
     
     pf = figure(y_axis_type='log', x_range=x_range, name='hr',
-                tools='box_select,lasso_select,reset',
+                tools='box_select,lasso_select,reset,hover',
                 title='H-R Diagram for {0}'.format(cluster.name))
     pf.select(BoxSelectTool).select_every_mousemove = False
     pf.select(LassoSelectTool).select_every_mousemove = False
+    hover = pf.select(HoverTool)[0]
+    hover.tooltips = [("Temperature (Kelvin)", "@x{0}"),
+                      ("Luminosity (solar units)", "@y{0.00}")]
     _diagram(source=source, plot_figure=pf, name='hr',
              color={'field': 'color', 'transform': color_mapper},
              xaxis_label='Temperature (Kelvin)',
@@ -391,7 +395,7 @@ def hr_diagram_select(cluster):
     pf.select(LassoSelectTool).select_every_mousemove = False
     pf.select(LassoSelectTool).select_every_mousemove = False
     session = pf.circle(x='x', y='y', source=source,
-                        size=4, color=color, alpha=1, name=name,
+                        size=5, color=color, alpha=1, name=name,
                         line_color=line_color, line_width=0.5)
     pf._session = session
     pf.xaxis.axis_label = xaxis_label
@@ -468,22 +472,23 @@ WHERE p.clean = 1 and p.probPSF = 1
         yaxis_label = 'Luminosity (solar units)'
         line_color = '#444444'
         self.pf = figure(y_axis_type='log', x_range=x_range,
-                         tools='lasso_select,box_select,reset',
+                         tools='lasso_select,box_select,reset,hover',
                          title='H-R Diagram for {0}'.format(self.region.name))
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         self.pf.select(LassoSelectTool).select_every_mousemove = False
+        hover = self.pf.select(HoverTool)[0]
+        hover.tooltips = [("id", "@id{0}"),
+                          ("Temperature (Kelvin)", "@x{0}"),
+                          ("Luminosity (solar units)", "@y{0.00}")]
         self.session = self.pf.circle(x='x', y='y', source=source,
-                                 size=4, color=color, alpha=1, name=name,
-                                 line_color=line_color, line_width=0.5)
+                                      size=5, color=color, alpha=1, name=name,
+                                      line_color=line_color, line_width=0.5)
         self.pf.xaxis.axis_label = xaxis_label
         self.pf.yaxis.axis_label = yaxis_label
         self.pf.yaxis.formatter = NumeralTickFormatter()
         doc.add_root(self.pf)
         def reset_(event):
             logger.debug('reset!')
-            #session.data_source = ColumnDataSource(data=dict(x=x, y=y, id=ids, color=colors), name='hr')
-            #self.selection_ids = None
-            #self.aladin.selection_ids = None
         self.doc = doc
         self.aladin.selection_update = self.meta_selection_update
         self.session.data_source.on_change('selected', self._hr_selection)
