@@ -1,3 +1,8 @@
+import sys
+import warnings
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
+
 from . import catalog_service
 from . import sample_catalog_provider
 

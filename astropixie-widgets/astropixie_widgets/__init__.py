@@ -1,3 +1,8 @@
+import sys
+import warnings
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
+
 import astropixie
 data = astropixie.data
 
