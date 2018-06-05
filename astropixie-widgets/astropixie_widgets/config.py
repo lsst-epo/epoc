@@ -49,5 +49,9 @@ def setup_notebook(debug=False):
         jupyter_proxy_url = 'localhost:8888'
 
 
-def show_with_bokeh_server(obj):
-    show(obj, notebook_url=jupyter_proxy_url)
+def show_with_bokeh_server(obj, output=None):
+    if output:
+        with output:
+            return show(obj, notebook_url=jupyter_proxy_url, notebook_handle=True)
+    else:
+        return show(obj, notebook_url=jupyter_proxy_url, notebook_handle=True)
