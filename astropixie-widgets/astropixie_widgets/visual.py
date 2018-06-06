@@ -515,11 +515,19 @@ WHERE p.clean = 1 and p.probPSF = 1
             logger.warning(e)
         self.aladin.selection_ids = [str(s) for s in selection_ids]
 
-    def show(self):
+    def show(self, horizontal=True):
         try:
-            widgets.widget.display(self.aladin)
-            self.aladin.add_table(self.cat)
-            show_with_bokeh_server(self._hr_diagram_select)
+            if horizontal:
+                output = widgets.Output()
+                box = widgets.HBox(children=[self.aladin,output])
+                self.handler = show_with_bokeh_server(
+                    self._hr_diagram_select, output=output)
+                widgets.widget.display(box,layout=widgets.Layout(width='auto'))
+                self.aladin.add_table(self.cat)
+            else:
+                widgets.widget.display(self.aladin)
+                self.aladin.add_table(self.cat)
+                show_with_bokeh_server(self._hr_diagram_select)
         except Exception as e:
             logger.debug(e)
 
