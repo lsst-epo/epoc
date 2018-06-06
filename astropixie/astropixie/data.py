@@ -57,7 +57,6 @@ class Berkeley20(SampleOpenCluster):
     def cds_stars(cls):
         data_source = cls._get_data_source('berkeley20.tsv')
         with data_source as f:
-            
             reader = csv.reader(f, delimiter=';')
             b20p = [row for row in reader]
             b20rawdata = b20p[41:]
@@ -73,7 +72,7 @@ class Berkeley20(SampleOpenCluster):
         with data_source as f:
             lines = [l.decode('utf-8')[:-1] for l in f.readlines()]
             data = []
-            pattern = re.compile('^\s+|\s* \s*|\s+$')
+            pattern = re.compile(r'^\s+|\s* \s*|\s+$')
             for l in lines:
                 values = [v for v in pattern.split(l) if v]
                 V = float(values[3])
@@ -99,7 +98,7 @@ class Berkeley20(SampleOpenCluster):
         with data_source as f:
             lines = [l.decode('utf-8')[:-1] for l in f.readlines()]
             data = np.empty((0, 1), dtype=cls._dtype)
-            pattern = re.compile('^\s+|\s* \s*|\s+$')
+            pattern = re.compile(r'^\s+|\s* \s*|\s+$')
             for l in lines:
                 values = [v for v in pattern.split(l) if v]
                 newrow = cls._dtype_row(data, values)
@@ -111,7 +110,7 @@ class SDSSRegion(Berkeley20):
     """
     An SDSS (ugriz) region of the sky. Expects PSFs and can be used with
     astropixie widgets.
-    
+
     Default to Berkeley 20, but accept astropy tables.
     """
 
@@ -138,7 +137,8 @@ SELECT TOP 2000
        p.i,
        p.z
 FROM PhotoPrimary AS p
-JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 1.32) AS r ON r.objID = p.objID
+JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 1.32)
+  AS r ON r.objID = p.objID
 WHERE p.clean = 1 and p.probPSF = 1
         """
         return SDSS.query_sql(query)
@@ -193,7 +193,7 @@ class NGC2849(SampleOpenCluster):
             lines = [l.decode('utf-8')[:-1] for l in f.readlines()]
             lines = lines[2:]
             data = []
-            pattern = re.compile('^\s+|\s* \s*|\s+$')
+            pattern = re.compile(r'^\s+|\s* \s*|\s+$')
             for l in lines:
                 values = [v for v in pattern.split(l) if v]
                 V = float(values[7])
@@ -299,8 +299,8 @@ def pprint(arr, columns=('temp', 'lum'),
     df = pd.DataFrame(arr.flatten(), index=arr['id'].flatten(),
                       columns=columns)
     df.columns = names
-    return df
-
+    return df.style.format({names[0]: '{:.0f}',
+                            names[1]: '{:.2f}'})
 
 
 L_ZERO_POINT = 3.0128 * pow(10, 28)  # units to add:  * u.watt
