@@ -434,7 +434,8 @@ class SHRD():
 
     def _skyviewer(self):
         self.aladin = ipyaladin.Aladin(
-            target='Berkeley 20', fov=0.42, survey='P/SDSS9/color')
+            target='Berkeley 20', fov=0.42, survey='P/SDSS9/color',
+            layout=widgets.Layout(width='500px'))
         self.aladin.show_reticle = False
         self.aladin.show_zoom_control = False
         self.aladin.show_fullscreen_control = False
