@@ -8,6 +8,7 @@ from . import sample_catalog_provider
 
 from . import data
 
+
 def hello_universe():
     return "Hello universe!"
 

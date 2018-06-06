@@ -91,4 +91,14 @@ def table(cluster):
         row['lum'][0] = np.array([lums[i]], dtype='f')
         row['temp'][0] = np.array([teffs[i]], dtype='f')
         i += 1
+    arr = round_arr_teff_luminosity(arr)
+    return arr
+
+
+def round_arr_teff_luminosity(arr):
+    """
+    Return the numpy array with rounded teff and luminosity columns.
+    """
+    arr['temp'] = np.around(arr['temp'], -1)
+    arr['lum'] = np.around(arr['lum'], 3)
     return arr

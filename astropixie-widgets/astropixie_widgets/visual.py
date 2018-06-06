@@ -30,7 +30,8 @@ from astropixie.data import Berkeley20, NGC2849, get_hr_data, L_ZERO_POINT,\
     SDSSRegion
 
 from .config import show_with_bokeh_server
-from .science import absolute_mag, distance, luminosity, teff, color
+from .science import absolute_mag, distance, luminosity, teff, color,\
+    round_arr_teff_luminosity
 
 
 logger = logging.getLogger()
@@ -186,17 +187,26 @@ def skyimage_figure(cluster):
     return pf_image
 
 
+def round_teff_luminosity(cluster):
+    """
+    Returns rounded teff and luminosity lists.
+    """
+    temps = [round(t, -1) for t in teff(cluster)]
+    lums = [round(l, 3) for l in luminosity(cluster)]
+    return temps, lums
+
+
 def hr_diagram_figure(cluster):
     """
     Given a cluster create a Bokeh plot figure creating an
     H-R diagram.
     """
-    temps, lums = teff(cluster), luminosity(cluster)
+    temps, lums = round_teff_luminosity(cluster)
     x, y = temps, lums
     colors, color_mapper = hr_diagram_color_helper(temps)
     x_range = [max(x) + max(x) * 0.05, min(x) - min(x) * 0.05]
     source = ColumnDataSource(data=dict(x=x, y=y, color=colors))
-    
+
     pf = figure(y_axis_type='log', x_range=x_range, name='hr',
                 tools='box_select,lasso_select,reset,hover',
                 title='H-R Diagram for {0}'.format(cluster.name))
@@ -217,9 +227,9 @@ def calculate_diagram_ranges(data):
     Given a numpy array calculate what the ranges of the H-R
     diagram should be.
     """
+    data = round_arr_teff_luminosity(data)
     temps = data['temp']
     x_range = [1.05 * np.amax(temps), .95 * np.amin(temps)]
-
     lums = data['lum']
     y_range = [.50 * np.amin(lums), 2 * np.amax(lums)]
     return (x_range, y_range)
@@ -230,6 +240,7 @@ def hr_diagram_from_data(data, x_range, y_range):
     Given a numpy array create a Bokeh plot figure creating an
     H-R diagram.
     """
+    data = round_arr_teff_luminosity(data)
     temps, lums = data['temp'], data['lum']
     x, y = temps, lums
     colors, color_mapper = hr_diagram_color_helper(temps)
@@ -298,7 +309,6 @@ def hr_diagram_interactive(doc):
         try:
             cluster = get_hr_data(text_input.value)
             new_x, new_y = absolute_mag(cluster)
-            #    y = luminosity(y)
             y_range = [max(new_y) + 0.5, min(new_y) - 0.25]
             source = ColumnDataSource(data=dict(x=new_x, y=new_y),
                                       name='cluster')
@@ -335,7 +345,7 @@ def hr_diagram_selection(cluster_name):
     right one.
     """
     cluster = get_hr_data(cluster_name)
-    temps, lums = teff(cluster), luminosity(cluster)
+    temps, lums = round_teff_luminosity(cluster)
     x, y = temps, lums
     colors, color_mapper = hr_diagram_color_helper(temps)
     x_range = [max(x) + max(x) * 0.05, min(x) - min(x) * 0.05]
@@ -357,7 +367,8 @@ def hr_diagram_selection(cluster_name):
              color={'field': 'color', 'transform': color_mapper},
              xaxis_label='Temperature (Kelvin)',
              yaxis_label='Luminosity (solar units)')
-    source.callback = CustomJS(args=dict(source_selected=source_selected), code="""
+    source.callback = CustomJS(args=dict(source_selected=source_selected),
+                               code="""
         var inds = cb_obj.selected['1d'].indices;
         var d1 = cb_obj.data;
         var d2 = source_selected.data;
@@ -376,19 +387,17 @@ def hr_diagram_selection(cluster_name):
 
 
 def hr_diagram_select(cluster):
-    temps, lums = teff(cluster), luminosity(cluster)
+    temps, lums = round_teff_luminosity(cluster)
     x, y = temps, lums
     colors, color_mapper = hr_diagram_color_helper(temps)
     x_range = [max(x) + max(x) * 0.05, min(x) - min(x) * 0.05]
     source = ColumnDataSource(data=dict(x=x, y=y, color=colors), name='hr')
-#    source_selected = ColumnDataSource(data=dict(x=[], y=[], color=[]),
-#                                       name='hr')
     name = 'hr'
-    color= {'field': 'color',
-            'transform': color_mapper}
-    xaxis_label='Temperature (Kelvin)'
-    yaxis_label='Luminosity (solar units)'
-    line_color='#444444'
+    color = {'field': 'color',
+             'transform': color_mapper}
+    xaxis_label = 'Temperature (Kelvin)'
+    yaxis_label = 'Luminosity (solar units)'
+    line_color = '#444444'
     pf = figure(y_axis_type='log', x_range=x_range,
                 tools='lasso_select,box_select,reset',
                 title='H-R Diagram for {0}'.format(cluster.name))
@@ -401,7 +410,7 @@ def hr_diagram_select(cluster):
     pf.xaxis.axis_label = xaxis_label
     pf.yaxis.axis_label = yaxis_label
     pf.yaxis.formatter = NumeralTickFormatter()
-    
+
     def update(attr, old, new):
         logger.debug('lasso update!')
 
@@ -416,7 +425,7 @@ class SHRD():
     aladin = None
     pf = None
     doc = None
-    region= None
+    region = None
     selection_ids = None
 
     def __init__(self):
@@ -449,22 +458,24 @@ SELECT TOP 3200
        p.i,
        p.z
 FROM PhotoPrimary AS p
-JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 3.24) AS r ON r.objID = p.objID
+JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 3.24)
+  AS r ON r.objID = p.objID
 WHERE p.clean = 1 and p.probPSF = 1
 """
         self.cat = SDSS.query_sql(query)
         if(self.aladin):
             self.aladin.add_table(self.cat)
         return self.cat
-    
+
     def _hr_diagram_select(self, doc):
         self.region = SDSSRegion(self.cat.copy())
-        temps, lums = teff(self.region), luminosity(self.region)
+        temps, lums = round_teff_luminosity(self.region)
         ids = self.region.ids()
         x, y = temps, lums
         colors, color_mapper = hr_diagram_color_helper(temps)
         x_range = [max(x) + max(x) * 0.05, min(x) - min(x) * 0.05]
-        source = ColumnDataSource(data=dict(x=x, y=y, id=ids, color=colors), name='hr')
+        source = ColumnDataSource(data=dict(x=x, y=y, id=ids, color=colors),
+                                  name='hr')
         name = 'hr'
         color = {'field': 'color',
                  'transform': color_mapper}
@@ -487,13 +498,15 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.pf.yaxis.axis_label = yaxis_label
         self.pf.yaxis.formatter = NumeralTickFormatter()
         doc.add_root(self.pf)
+
         def reset_(event):
             logger.debug('reset!')
+
         self.doc = doc
         self.aladin.selection_update = self.meta_selection_update
         self.session.data_source.on_change('selected', self._hr_selection)
         self.pf.on_event(Reset, reset_)
-        
+
     def _hr_selection(self, attr, old, new):
         inds = np.array(new['1d']['indices'])
         try:
@@ -501,7 +514,7 @@ WHERE p.clean = 1 and p.probPSF = 1
         except Exception as e:
             logger.warning(e)
         self.aladin.selection_ids = [str(s) for s in selection_ids]
-        
+
     def show(self):
         try:
             widgets.widget.display(self.aladin)
@@ -521,8 +534,8 @@ WHERE p.clean = 1 and p.probPSF = 1
             rows=df_selected.values,
             names=[d[0] for d in region_selected._dtype],
             dtype=[d[1] for d in region_selected._dtype])
-        temps, lums = teff(self.region), luminosity(self.region)
-        return temps, lums, df['id'] #selection_ids
+        temps, lums = round_temps_luminosity(self.region)
+        return temps, lums, df['id']
 
     def _filter_selection_indices(self, selection_ids):
         selection_ids = [np.int64(i) for i in self.selection_ids]
@@ -533,27 +546,31 @@ WHERE p.clean = 1 and p.probPSF = 1
         df_selected = df[df['id'].isin(selection_ids)]
         select_indices = list(np.where(df['id'].isin(selection_ids))[0])
         return select_indices
-    
+
     def _skyviewer_selection(self):
         try:
             if self.pf:
                 selected = self.pf.select(name='hr')
                 if selected:
-                    new_temps, new_lums, new_ids = self._filter_selection(self.selection_ids)
-                    indices = self._filter_selection_indices(self.selection_ids)
+                    new_temps, new_lums, new_ids = self._filter_selection(
+                        self.selection_ids)
+                    indices = self._filter_selection_indices(
+                        self.selection_ids)
                     colors, color_mapper = hr_diagram_color_helper(new_temps)
                     selection = Selection(indices=indices)
                     new_source = ColumnDataSource(
-                        data=dict(x=new_temps, y=new_lums, ids=new_ids, color=colors),
-                        selected=selection, name='hr')
+                        data=dict(x=new_temps, y=new_lums, ids=new_ids,
+                                  color=colors), selected=selection, name='hr')
                     if isinstance(selected[0], ColumnDataSource):
                         selected_old = selected[0].selected
                         self.session.data_source = new_source
                     elif selected[0]:
                         selected_old = selected[0].data_source.selected
                         selected[0].data_source = new_source
-                    self.session.data_source.trigger('selected', selected_old, selection)
-                    self.session.data_source.on_change('selected', self._hr_selection)
+                    self.session.data_source.trigger('selected', selected_old,
+                                                     selection)
+                    self.session.data_source.on_change('selected',
+                                                       self._hr_selection)
             else:
                 logger.warning('Figure does not exist.')
         except Exception as e:
