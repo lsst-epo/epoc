@@ -543,7 +543,7 @@ WHERE p.clean = 1 and p.probPSF = 1
             rows=df_selected.values,
             names=[d[0] for d in region_selected._dtype],
             dtype=[d[1] for d in region_selected._dtype])
-        temps, lums = round_temps_luminosity(self.region)
+        temps, lums = round_teff_luminosity(self.region)
         return temps, lums, df['id']
 
     def _filter_selection_indices(self, selection_ids):
