@@ -429,13 +429,16 @@ class SHRD():
     selection_ids = None
 
     def __init__(self):
-        self._skyviewer()
         self._catalog()
 
-    def _skyviewer(self):
+    def _skyviewer(self, horizontal):
+        if horizontal:
+            layout = widgets.Layout(min_width='50%', min_height='600px')
+        else:
+            layout = widgets.Layout(min_width='100%', min_height='600px')
         self.aladin = ipyaladin.Aladin(
             target='Berkeley 20', fov=0.42, survey='P/SDSS9/color',
-            layout=widgets.Layout(width='500px'))
+            layout=layout)
         self.aladin.show_reticle = False
         self.aladin.show_zoom_control = False
         self.aladin.show_fullscreen_control = False
@@ -518,6 +521,7 @@ WHERE p.clean = 1 and p.probPSF = 1
 
     def show(self, horizontal=True):
         try:
+            self._skyviewer(horizontal)
             if horizontal:
                 output = widgets.Output()
                 box = widgets.HBox(children=[self.aladin,output])
