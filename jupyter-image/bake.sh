@@ -31,9 +31,9 @@ pip install /opt/astropixie
 pip install /opt/astropixie-widgets
 
 # Install our own EPO extensions.
-git clone https://github.com/lsst-epo/jupyterlab_hidecode.git /opt/hide_code
-(cd /opt/hide_code && npm install && npm run build)
-jupyter labextension link /opt/hide_code
+git clone https://github.com/lsst-epo/jupyterlab_celltools.git /opt/jupyterlab_celltools
+(cd /opt/jupyterlab_celltools && npm install && npm run build)
+jupyter labextension link /opt/jupyterlab_celltools
 
 # Final build
 jupyter lab clean
