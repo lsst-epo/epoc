@@ -4,6 +4,7 @@ Visual for H-R diagram investigations.
 import logging
 import math
 import random
+import time
 
 import astropy
 from astroquery.sdss import SDSS
@@ -427,12 +428,15 @@ class SHRD():
     doc = None
     region = None
     selection_ids = None
+    horizontal = True
 
-    def __init__(self):
+    def __init__(self, horizontal=True):
+        self.horizontal = horizontal
+        #self._skyviewer()
         self._catalog()
 
-    def _skyviewer(self, horizontal):
-        if horizontal:
+    def _skyviewer(self):
+        if self.horizontal:
             layout = widgets.Layout(min_width='50%', min_height='600px')
         else:
             layout = widgets.Layout(min_width='100%', min_height='600px')
@@ -467,8 +471,6 @@ JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 3.24)
 WHERE p.clean = 1 and p.probPSF = 1
 """
         self.cat = SDSS.query_sql(query)
-        if(self.aladin):
-            self.aladin.add_table(self.cat)
         return self.cat
 
     def _hr_diagram_select(self, doc):
@@ -519,15 +521,16 @@ WHERE p.clean = 1 and p.probPSF = 1
             logger.warning(e)
         self.aladin.selection_ids = [str(s) for s in selection_ids]
 
-    def show(self, horizontal=True):
+    def show(self):
         try:
-            self._skyviewer(horizontal)
-            if horizontal:
+            self._skyviewer()
+            if self.horizontal:
                 output = widgets.Output()
                 box = widgets.HBox(children=[self.aladin,output])
                 self.handler = show_with_bokeh_server(
                     self._hr_diagram_select, output=output)
                 widgets.widget.display(box,layout=widgets.Layout(width='auto'))
+                time.sleep(0.8)
                 self.aladin.add_table(self.cat)
             else:
                 widgets.widget.display(self.aladin)
@@ -570,10 +573,13 @@ WHERE p.clean = 1 and p.probPSF = 1
                     indices = self._filter_selection_indices(
                         self.selection_ids)
                     colors, color_mapper = hr_diagram_color_helper(new_temps)
+                    if not self.selection_ids:
+                        indices = [0]
                     selection = Selection(indices=indices)
                     new_source = ColumnDataSource(
                         data=dict(x=new_temps, y=new_lums, ids=new_ids,
                                   color=colors), selected=selection, name='hr')
+                    self._select_null(new_source)
                     if isinstance(selected[0], ColumnDataSource):
                         selected_old = selected[0].selected
                         self.session.data_source = new_source
