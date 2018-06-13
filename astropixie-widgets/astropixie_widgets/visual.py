@@ -579,7 +579,6 @@ WHERE p.clean = 1 and p.probPSF = 1
                     new_source = ColumnDataSource(
                         data=dict(x=new_temps, y=new_lums, ids=new_ids,
                                   color=colors), selected=selection, name='hr')
-                    self._select_null(new_source)
                     if isinstance(selected[0], ColumnDataSource):
                         selected_old = selected[0].selected
                         self.session.data_source = new_source
