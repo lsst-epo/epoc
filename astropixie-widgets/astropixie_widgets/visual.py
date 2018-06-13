@@ -430,8 +430,9 @@ class SHRD():
     selection_ids = None
     horizontal = True
 
-    def __init__(self, horizontal=True):
+    def __init__(self, name='Berkeley 20', horizontal=True):
         self.horizontal = horizontal
+        self.name = name
         #self._skyviewer()
         self._catalog()
 
@@ -521,14 +522,23 @@ WHERE p.clean = 1 and p.probPSF = 1
             logger.warning(e)
         self.aladin.selection_ids = [str(s) for s in selection_ids]
 
+    def _box(self, output):
+        text_box = widgets.HBox(children=[
+            widgets.Label(
+                'Type in the name of your cluster and press Enter/Return:'),
+            widgets.Text(value=self.name, placeholder=self.name,
+                         description='',disabled=False)])
+        box = widgets.HBox(children=[self.aladin, output])
+        return widgets.VBox(children=[text_box, box])
+        
     def show(self):
         try:
             self._skyviewer()
             if self.horizontal:
                 output = widgets.Output()
-                box = widgets.HBox(children=[self.aladin,output])
                 self.handler = show_with_bokeh_server(
                     self._hr_diagram_select, output=output)
+                box = self._box(output)                
                 widgets.widget.display(box,layout=widgets.Layout(width='auto'))
                 time.sleep(0.8)
                 self.aladin.add_table(self.cat)
