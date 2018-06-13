@@ -495,7 +495,7 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         hover = self.pf.select(HoverTool)[0]
-        hover.tooltips = [("index", "@index{0}"),
+        hover.tooltips = [("index", "$index{0}"),
                           ("Temperature (Kelvin)", "@x{0}"),
                           ("Luminosity (solar units)", "@y{0.00}")]
         self.session = self.pf.circle(x='x', y='y', source=source,
