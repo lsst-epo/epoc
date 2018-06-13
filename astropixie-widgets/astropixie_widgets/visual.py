@@ -4,6 +4,7 @@ Visual for H-R diagram investigations.
 import logging
 import math
 import random
+import time
 
 import astropy
 from astroquery.sdss import SDSS
@@ -427,15 +428,22 @@ class SHRD():
     doc = None
     region = None
     selection_ids = None
+    horizontal = True
 
-    def __init__(self):
-        self._skyviewer()
+    def __init__(self, name='Berkeley 20', horizontal=True):
+        self.horizontal = horizontal
+        self.name = name
+        #self._skyviewer()
         self._catalog()
 
     def _skyviewer(self):
+        if self.horizontal:
+            layout = widgets.Layout(min_width='50%', min_height='600px')
+        else:
+            layout = widgets.Layout(min_width='100%', min_height='600px')
         self.aladin = ipyaladin.Aladin(
             target='Berkeley 20', fov=0.42, survey='P/SDSS9/color',
-            layout=widgets.Layout(width='500px'))
+            layout=layout)
         self.aladin.show_reticle = False
         self.aladin.show_zoom_control = False
         self.aladin.show_fullscreen_control = False
@@ -464,8 +472,6 @@ JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 3.24)
 WHERE p.clean = 1 and p.probPSF = 1
 """
         self.cat = SDSS.query_sql(query)
-        if(self.aladin):
-            self.aladin.add_table(self.cat)
         return self.cat
 
     def _hr_diagram_select(self, doc):
@@ -516,14 +522,25 @@ WHERE p.clean = 1 and p.probPSF = 1
             logger.warning(e)
         self.aladin.selection_ids = [str(s) for s in selection_ids]
 
-    def show(self, horizontal=True):
+    def _box(self, output):
+        text_box = widgets.HBox(children=[
+            widgets.Label(
+                'Type in the name of your cluster and press Enter/Return:'),
+            widgets.Text(value=self.name, placeholder=self.name,
+                         description='',disabled=False)])
+        box = widgets.HBox(children=[self.aladin, output])
+        return widgets.VBox(children=[text_box, box])
+        
+    def show(self):
         try:
-            if horizontal:
+            self._skyviewer()
+            if self.horizontal:
                 output = widgets.Output()
-                box = widgets.HBox(children=[self.aladin,output])
                 self.handler = show_with_bokeh_server(
                     self._hr_diagram_select, output=output)
+                box = self._box(output)                
                 widgets.widget.display(box,layout=widgets.Layout(width='auto'))
+                time.sleep(0.8)
                 self.aladin.add_table(self.cat)
             else:
                 widgets.widget.display(self.aladin)
@@ -566,6 +583,8 @@ WHERE p.clean = 1 and p.probPSF = 1
                     indices = self._filter_selection_indices(
                         self.selection_ids)
                     colors, color_mapper = hr_diagram_color_helper(new_temps)
+                    if not self.selection_ids:
+                        indices = [0]
                     selection = Selection(indices=indices)
                     new_source = ColumnDataSource(
                         data=dict(x=new_temps, y=new_lums, ids=new_ids,
