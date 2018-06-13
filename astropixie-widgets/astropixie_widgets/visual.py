@@ -16,7 +16,7 @@ from bokeh.models import CategoricalColorMapper, ColumnDataSource,\
     HoverTool
 from bokeh.models.formatters import NumeralTickFormatter
 from bokeh.models.selections import Selection
-from bokeh.models.widgets import Slider, TextInput, Div
+from bokeh.models.widgets import RangeSlider, Slider, TextInput, Div
 from bokeh.plotting import figure
 
 
@@ -429,6 +429,8 @@ class SHRD():
     region = None
     selection_ids = None
     horizontal = True
+    temperature_range_slider = None
+    luminosity_range_slider = None
 
     def __init__(self, name='Berkeley 20', horizontal=True):
         self.horizontal = horizontal
@@ -474,6 +476,12 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.cat = SDSS.query_sql(query)
         return self.cat
 
+    def _update_temperature_range(self, attr, old, new):
+        logger.error('update temp')
+
+    def _update_luminosity_range(self, attr, old, new):
+        logger.error('update lum')
+
     def _hr_diagram_select(self, doc):
         self.region = SDSSRegion(self.cat.copy())
         temps, lums = round_teff_luminosity(self.region)
@@ -504,7 +512,18 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.pf.xaxis.axis_label = xaxis_label
         self.pf.yaxis.axis_label = yaxis_label
         self.pf.yaxis.formatter = NumeralTickFormatter()
-        doc.add_root(self.pf)
+
+        self.temperature_range_slider = RangeSlider(title='Temperature',
+            value=(x_range[1], x_range[0]), start=x_range[1],
+            end=x_range[0], step=25.0)
+        self.temperature_range_slider.on_change('value', self._update_temperature_range)
+
+        self.luminosity_range_slider = RangeSlider(title='Luminosity',
+            value=(.95 * min(y), 1.05 * max(y)), start=(.95 * min(y)),
+            end=(1.05 * max(y)), step=0.2)
+        self.luminosity_range_slider.on_change('value', self._update_luminosity_range)
+
+        sliders = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
 
         def reset_(event):
             logger.debug('reset!')
@@ -513,6 +532,8 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.aladin.selection_update = self.meta_selection_update
         self.session.data_source.on_change('selected', self._hr_selection)
         self.pf.on_event(Reset, reset_)
+
+        doc.add_root(column(self.pf, sliders))
 
     def _hr_selection(self, attr, old, new):
         inds = np.array(new['1d']['indices'])
