@@ -30,7 +30,31 @@ def remote_jupyter_proxy_url(port):
 # By default, use the remote_jupyter_proxy_url
 jupyter_proxy_url = remote_jupyter_proxy_url
 
+
 logger = None
+
+
+def logging_config(level):
+    format_ = "%(asctime)s %(name)s-%(levelname)s "\
+              "[%(pathname)s %(lineno)d] %(message)s"
+    formatter = logging.Formatter(format_)
+    logging.basicConfig(level=level, format=format_)
+    global logger
+    logger = logging.getLogger()
+    logger.handlers.clear()
+    
+    filename = Path('~/ipynb.log').expanduser()
+    filename.touch()
+
+    handler = logging.FileHandler(filename=filename,
+                                  encoding='utf-8', mode='a+')
+    handler.setFormatter(formatter)
+    handler.setLevel(level)
+
+    logger.setLevel(level)
+    logger.addHandler(handler)
+    logger.debug('Running notebook in debug mode.')
+
 
 def setup_notebook(debug=False):
     """Called at the start of notebook execution to setup the environment.
@@ -39,25 +63,9 @@ def setup_notebook(debug=False):
     reasonable."""
     output_notebook(INLINE, hide_banner=True)
     if debug:
-        level = logging.DEBUG
+        config_logging(logging.DEBUG)
     else:
-        level = logging.WARNING
-    format_ = "%(asctime)s %(name)s-%(levelname)s "\
-              "[%(pathname)s %(lineno)d] %(message)s"
-    formatter = logging.Formatter(format_)
-    logging.basicConfig(level=level, format=format_)
-    global logger
-    logger = logging.getLogger()
-    logger.handlers.clear()
-    filename = Path('~/ipynb.log').expanduser()
-    filename.touch()
-    handler = logging.FileHandler(filename=filename,
-                                  encoding='utf-8', mode='a+')
-    handler.setFormatter(formatter)
-    handler.setLevel(level)
-    logger.setLevel(level)
-    logger.addHandler(handler)
-    logger.debug('Running notebook in debug mode.')
+        config_logging(logging.WARNING)
 
     # If JUPYTERHUB_SERVICE_PREFIX environment variable isn't set,
     # this means that you're running JupyterHub not with Hub in k8s,
