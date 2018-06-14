@@ -34,7 +34,7 @@ jupyter_proxy_url = remote_jupyter_proxy_url
 logger = None
 
 
-def logging_config(level):
+def _setup_logging(level):
     format_ = "%(asctime)s %(name)s-%(levelname)s "\
               "[%(pathname)s %(lineno)d] %(message)s"
     formatter = logging.Formatter(format_)
@@ -63,9 +63,9 @@ def setup_notebook(debug=False):
     reasonable."""
     output_notebook(INLINE, hide_banner=True)
     if debug:
-        config_logging(logging.DEBUG)
+        _setup_logging(logging.DEBUG)
     else:
-        config_logging(logging.WARNING)
+        _setup_logging(logging.WARNING)
 
     # If JUPYTERHUB_SERVICE_PREFIX environment variable isn't set,
     # this means that you're running JupyterHub not with Hub in k8s,
