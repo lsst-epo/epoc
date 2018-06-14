@@ -1,7 +1,6 @@
 """
 Visual for H-R diagram investigations.
 """
-import logging
 import math
 import random
 import time
@@ -30,12 +29,9 @@ import pandas as pd
 from astropixie.data import Berkeley20, NGC2849, get_hr_data, L_ZERO_POINT,\
     SDSSRegion
 
-from .config import show_with_bokeh_server
+from .config import show_with_bokeh_server, logger
 from .science import absolute_mag, distance, luminosity, teff, color,\
     round_arr_teff_luminosity
-
-
-logger = logging.getLogger()
 
 
 def _telescope_pointing_widget(cluster_name):
