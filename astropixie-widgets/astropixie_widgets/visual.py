@@ -9,6 +9,7 @@ import time
 import astropy
 from astroquery.sdss import SDSS
 
+from bokeh.core.enums import SliderCallbackPolicy
 from bokeh.events import Reset
 from bokeh.layouts import row, column, widgetbox
 from bokeh.models import CategoricalColorMapper, ColumnDataSource,\
@@ -476,11 +477,8 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.cat = SDSS.query_sql(query)
         return self.cat
 
-    def _update_temperature_range(self, attr, old, new):
-        logger.error('update temp')
-
-    def _update_luminosity_range(self, attr, old, new):
-        logger.error('update lum')
+    def _update_slider_range(self, attr, old, new):
+        self.doc.add_next_tick_callback(self._skyviewer_selection)
 
     def _hr_diagram_select(self, doc):
         self.region = SDSSRegion(self.cat.copy())
@@ -516,12 +514,16 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.temperature_range_slider = RangeSlider(title='Temperature',
             value=(x_range[1], x_range[0]), start=x_range[1],
             end=x_range[0], step=25.0)
-        self.temperature_range_slider.on_change('value', self._update_temperature_range)
+        self.temperature_range_slider.callback_policy = SliderCallbackPolicy.throttle
+        self.temperature_range_slider.callback_throttle = 250.0
+        self.temperature_range_slider.on_change('value', self._update_slider_range)
 
         self.luminosity_range_slider = RangeSlider(title='Luminosity',
             value=(.95 * min(y), 1.05 * max(y)), start=(.95 * min(y)),
             end=(1.05 * max(y)), step=0.2)
-        self.luminosity_range_slider.on_change('value', self._update_luminosity_range)
+        self.luminosity_range_slider.on_change('value', self._update_slider_range)
+        self.temperature_range_slider.callback_policy = SliderCallbackPolicy.throttle
+        self.temperature_range_slider.callback_throttle = 250.0
 
         sliders = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
 
@@ -594,6 +596,22 @@ WHERE p.clean = 1 and p.probPSF = 1
         select_indices = list(np.where(df['id'].isin(selection_ids))[0])
         return select_indices
 
+    def _filter_indices_on_sliders(self, temps, lums, indices):
+        """Based on the values of the sliders, filter out unwanted indices."""
+        filtered_indices = []
+
+        min_temp = self.temperature_range_slider.value[0]
+        max_temp = self.temperature_range_slider.value[1]
+        min_lum = self.luminosity_range_slider.value[0]
+        max_lum = self.luminosity_range_slider.value[1]
+
+        for idx in indices:
+            if min_temp <= temps[idx] <= max_temp and \
+               min_lum <= lums[idx] <= max_lum:
+                filtered_indices.append(idx)
+
+        return filtered_indices
+
     def _skyviewer_selection(self):
         try:
             if self.pf:
@@ -606,6 +624,7 @@ WHERE p.clean = 1 and p.probPSF = 1
                     colors, color_mapper = hr_diagram_color_helper(new_temps)
                     if not self.selection_ids:
                         indices = [0]
+                    indices = self._filter_indices_on_sliders(new_temps, new_lums, indices)
                     selection = Selection(indices=indices)
                     new_source = ColumnDataSource(
                         data=dict(x=new_temps, y=new_lums, ids=new_ids,
