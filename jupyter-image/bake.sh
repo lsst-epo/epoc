@@ -27,8 +27,8 @@ jupyter serverextension enable --py nbserverproxy
 jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
 
 # Install astropixie API library
-pip install /opt/astropixie
-pip install /opt/astropixie-widgets
+pip install -e /opt/astropixie
+pip install -e /opt/astropixie-widgets
 
 # Install our own EPO extensions.
 git clone https://github.com/lsst-epo/jupyterlab_celltools.git /opt/jupyterlab_celltools
