@@ -535,11 +535,8 @@ WHERE p.clean = 1 and p.probPSF = 1
 
     def _hr_selection(self, attr, old, new):
         inds = np.array(new['1d']['indices'])
-        try:
-            selection_ids = np.take(self.region.cat['objID'], inds)
-        except Exception as e:
-            logger.warning(e)
-        self.aladin.selection_ids = [str(s) for s in selection_ids]
+        aladin_selection_ids = np.take(self.region.cat['objID'], inds)
+        self.aladin.selection_ids = [str(s) for s in aladin_selection_ids]
 
     def _box(self, output):
         text_box = widgets.HBox(children=[
@@ -557,7 +554,7 @@ WHERE p.clean = 1 and p.probPSF = 1
                 output = widgets.Output()
                 self.handler = show_with_bokeh_server(
                     self._hr_diagram_select, output=output)
-                box = self._box(output)                
+                box = self._box(output)
                 widgets.widget.display(box,layout=widgets.Layout(width='auto'))
                 time.sleep(0.8)
                 self.aladin.add_table(self.cat)
