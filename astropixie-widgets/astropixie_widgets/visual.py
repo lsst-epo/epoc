@@ -432,7 +432,6 @@ class SHRD():
     def __init__(self, name='Berkeley 20', horizontal=True):
         self.horizontal = horizontal
         self.name = name
-        #self._skyviewer()
         self._catalog()
 
     def _skyviewer(self):
