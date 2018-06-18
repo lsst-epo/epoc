@@ -432,7 +432,6 @@ class SHRD():
     def __init__(self, name='Berkeley 20', horizontal=True):
         self.horizontal = horizontal
         self.name = name
-        #self._skyviewer()
         self._catalog()
 
     def _skyviewer(self):
@@ -535,11 +534,8 @@ WHERE p.clean = 1 and p.probPSF = 1
 
     def _hr_selection(self, attr, old, new):
         inds = np.array(new['1d']['indices'])
-        try:
-            selection_ids = np.take(self.region.cat['objID'], inds)
-        except Exception as e:
-            logger.warning(e)
-        self.aladin.selection_ids = [str(s) for s in selection_ids]
+        aladin_selection_ids = np.take(self.region.cat['objID'], inds)
+        self.aladin.selection_ids = [str(s) for s in aladin_selection_ids]
 
     def _box(self, output):
         text_box = widgets.HBox(children=[
@@ -557,7 +553,7 @@ WHERE p.clean = 1 and p.probPSF = 1
                 output = widgets.Output()
                 self.handler = show_with_bokeh_server(
                     self._hr_diagram_select, output=output)
-                box = self._box(output)                
+                box = self._box(output)
                 widgets.widget.display(box,layout=widgets.Layout(width='auto'))
                 time.sleep(0.8)
                 self.aladin.add_table(self.cat)
@@ -568,29 +564,12 @@ WHERE p.clean = 1 and p.probPSF = 1
         except Exception as e:
             logger.debug(e)
 
-    def _filter_selection(self, selection_ids):
-        selection_ids = [np.int64(i) for i in self.selection_ids]
-        region_selected = type(self.region)(self.cat.copy())
-        arr = region_selected.to_array()
-        df = pd.DataFrame(arr.flatten(), index=arr['id'].flatten(),
-                          columns=[d[0] for d in region_selected._dtype])
-        df_selected = df[df['id'].isin(selection_ids)]
-        region_selected.cat = astropy.table.Table(
-            rows=df_selected.values,
-            names=[d[0] for d in region_selected._dtype],
-            dtype=[d[1] for d in region_selected._dtype])
+    def _filter_selection(self):
+        all_ids = self.region.to_array()['id']
+        df = pd.DataFrame(all_ids.flatten(), columns=[np.int64])
+        select_indices = list(np.where(df.isin(self.selection_ids))[0])
         temps, lums = round_teff_luminosity(self.region)
-        return temps, lums, df['id']
-
-    def _filter_selection_indices(self, selection_ids):
-        selection_ids = [np.int64(i) for i in self.selection_ids]
-        region_selected = type(self.region)(self.cat.copy())
-        arr = region_selected.to_array()
-        df = pd.DataFrame(arr.flatten(), index=arr['id'].flatten(),
-                          columns=[d[0] for d in region_selected._dtype])
-        df_selected = df[df['id'].isin(selection_ids)]
-        select_indices = list(np.where(df['id'].isin(selection_ids))[0])
-        return select_indices
+        return temps, lums, all_ids, select_indices
 
     def _filter_indices_on_sliders(self, temps, lums, indices):
         """Based on the values of the sliders, filter out unwanted indices."""
@@ -613,11 +592,8 @@ WHERE p.clean = 1 and p.probPSF = 1
             if self.pf:
                 selected = self.pf.select(name='hr')
                 if selected:
-                    new_temps, new_lums, new_ids = self._filter_selection(
-                        self.selection_ids)
-                    indices = self._filter_selection_indices(
-                        self.selection_ids)
-                    colors, color_mapper = hr_diagram_color_helper(new_temps)
+                    new_temps, new_lums, new_ids, indices = self._filter_selection()
+                    colors, _ = hr_diagram_color_helper(new_temps)
                     if not self.selection_ids:
                         indices = [0]
                     indices = self._filter_indices_on_sliders(new_temps, new_lums, indices)
@@ -641,5 +617,5 @@ WHERE p.clean = 1 and p.probPSF = 1
             logger.warning(e)
 
     def meta_selection_update(self, selection_ids):
-        self.selection_ids = selection_ids
+        self.selection_ids = [np.int64(i) for i in selection_ids]
         self.doc.add_next_tick_callback(self._skyviewer_selection)
