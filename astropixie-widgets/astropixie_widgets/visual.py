@@ -579,16 +579,8 @@ WHERE p.clean = 1 and p.probPSF = 1
             names=[d[0] for d in region_selected._dtype],
             dtype=[d[1] for d in region_selected._dtype])
         temps, lums = round_teff_luminosity(self.region)
-        return temps, lums, df['id']
-
-    def _filter_selection_indices(self):
-        region_selected = type(self.region)(self.cat.copy())
-        arr = region_selected.to_array()
-        df = pd.DataFrame(arr.flatten(), index=arr['id'].flatten(),
-                          columns=[d[0] for d in region_selected._dtype])
-        df_selected = df[df['id'].isin(self.selection_ids)]
         select_indices = list(np.where(df['id'].isin(self.selection_ids))[0])
-        return select_indices
+        return temps, lums, df['id'], select_indices
 
     def _filter_indices_on_sliders(self, temps, lums, indices):
         """Based on the values of the sliders, filter out unwanted indices."""
@@ -611,8 +603,7 @@ WHERE p.clean = 1 and p.probPSF = 1
             if self.pf:
                 selected = self.pf.select(name='hr')
                 if selected:
-                    new_temps, new_lums, new_ids = self._filter_selection()
-                    indices = self._filter_selection_indices()
+                    new_temps, new_lums, new_ids, indices = self._filter_selection()
                     colors, color_mapper = hr_diagram_color_helper(new_temps)
                     if not self.selection_ids:
                         indices = [0]
