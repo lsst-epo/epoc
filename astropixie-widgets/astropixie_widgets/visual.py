@@ -19,8 +19,8 @@ from bokeh.models.selections import Selection
 from bokeh.models.widgets import RangeSlider, Slider, TextInput, Div
 from bokeh.plotting import figure
 
-
 import ipyaladin
+
 from ipywidgets import Layout, Box, widgets
 
 import numpy as np
@@ -30,7 +30,7 @@ import pandas as pd
 from astropixie.data import Berkeley20, NGC2849, get_hr_data, L_ZERO_POINT,\
     SDSSRegion
 
-from .config import show_with_bokeh_server, logger
+from .config import logger, show_with_bokeh_server
 from .science import absolute_mag, distance, luminosity, teff, color,\
     round_arr_teff_luminosity
 
@@ -482,6 +482,7 @@ WHERE p.clean = 1 and p.probPSF = 1
         x, y = temps, lums
         colors, color_mapper = hr_diagram_color_helper(temps)
         x_range = [max(x) + max(x) * 0.05, min(x) - min(x) * 0.05]
+        self._add_null_selection(temps, lums, ids, colors)
         source = ColumnDataSource(data=dict(x=x, y=y, id=ids, color=colors),
                                   name='hr')
         name = 'hr'
@@ -564,12 +565,23 @@ WHERE p.clean = 1 and p.probPSF = 1
         except Exception as e:
             logger.debug(e)
 
+    def _add_null_selection(self, temps, lums, ids, colors):
+        temps.insert(0, 0)
+        lums.insert(0, 0)
+        if isinstance(ids, np.ndarray):
+            np.insert(ids, 0, 0, axis=0)
+        else:
+            ids.insert(0, 0)
+        colors.insert(0, 'white')
+
     def _filter_selection(self):
         all_ids = self.region.to_array()['id']
         df = pd.DataFrame(all_ids.flatten(), columns=[np.int64])
         select_indices = list(np.where(df.isin(self.selection_ids))[0])
         temps, lums = round_teff_luminosity(self.region)
-        return temps, lums, all_ids, select_indices
+        colors, _ = hr_diagram_color_helper(temps)
+        self._add_null_selection(temps, lums, all_ids, colors)
+        return temps, lums, all_ids, colors, select_indices
 
     def _filter_indices_on_sliders(self, temps, lums, indices):
         """Based on the values of the sliders, filter out unwanted indices."""
@@ -584,7 +596,8 @@ WHERE p.clean = 1 and p.probPSF = 1
             if min_temp <= temps[idx] <= max_temp and \
                min_lum <= lums[idx] <= max_lum:
                 filtered_indices.append(idx)
-
+        if not filtered_indices:
+            filtered_indices = [0]
         return filtered_indices
 
     def _skyviewer_selection(self):
@@ -592,10 +605,8 @@ WHERE p.clean = 1 and p.probPSF = 1
             if self.pf:
                 selected = self.pf.select(name='hr')
                 if selected:
-                    new_temps, new_lums, new_ids, indices = self._filter_selection()
-                    colors, _ = hr_diagram_color_helper(new_temps)
-                    if not self.selection_ids:
-                        indices = [0]
+                    new_temps, new_lums, new_ids, colors, indices \
+                        = self._filter_selection()
                     indices = self._filter_indices_on_sliders(new_temps, new_lums, indices)
                     selection = Selection(indices=indices)
                     new_source = ColumnDataSource(
@@ -616,6 +627,12 @@ WHERE p.clean = 1 and p.probPSF = 1
         except Exception as e:
             logger.warning(e)
 
+    def _set_selection_ids(self, selection_ids):
+        if self.selection_ids:
+            self.selection_ids = [np.int64(i) for i in selection_ids]
+        else:
+            self.selection_ids = [0]
+
     def meta_selection_update(self, selection_ids):
-        self.selection_ids = [np.int64(i) for i in selection_ids]
+        self._set_selection_ids(selection_ids)
         self.doc.add_next_tick_callback(self._skyviewer_selection)

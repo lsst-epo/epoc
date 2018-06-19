@@ -56,6 +56,9 @@ def _setup_logging(level):
     logger.debug('Running notebook in debug mode.')
 
 
+_setup_logging(logging.WARNING)
+
+
 def setup_notebook(debug=False):
     """Called at the start of notebook execution to setup the environment.
 
