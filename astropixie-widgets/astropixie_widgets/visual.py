@@ -482,6 +482,10 @@ WHERE p.clean = 1 and p.probPSF = 1
         x, y = temps, lums
         colors, color_mapper = hr_diagram_color_helper(temps)
         x_range = [max(x) + max(x) * 0.05, min(x) - min(x) * 0.05]
+        temps.insert(0, 0)
+        lums.insert(0, 0)
+        ids.insert(0, 0)
+        colors.insert(0, 'white')
         source = ColumnDataSource(data=dict(x=x, y=y, id=ids, color=colors),
                                   name='hr')
         name = 'hr'
@@ -567,6 +571,8 @@ WHERE p.clean = 1 and p.probPSF = 1
     def _filter_selection(self):
         all_ids = self.region.to_array()['id']
         df = pd.DataFrame(all_ids.flatten(), columns=[np.int64])
+        if not self.selection_ids:
+            self.selection_ids = [0]
         select_indices = list(np.where(df.isin(self.selection_ids))[0])
         temps, lums = round_teff_luminosity(self.region)
         return temps, lums, all_ids, select_indices
