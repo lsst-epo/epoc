@@ -39,7 +39,7 @@ class Berkeley20(SampleOpenCluster):
                      distance=9000 * u.parsec)  # +- 480
     fe_h = -0.3
     tau = 5.5
-    eb_v = 0.15
+    eb_v = 0.12
     Z = 0.008  # Z_sun
     d_modulus = 14.7  # (m - M)
     name = 'Berkeley 20'
