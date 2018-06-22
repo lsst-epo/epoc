@@ -31,6 +31,7 @@ def teff(cluster):
     b_vs, _ = cluster.stars()
     teffs = []
     for b_v in b_vs:
+        b_v -= cluster.eb_v
         if b_v > -0.04:
             x = (14.551 - b_v) / 3.684
         else:
