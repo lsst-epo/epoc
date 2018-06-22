@@ -31,9 +31,12 @@ def teff(cluster):
     b_vs, _ = cluster.stars()
     teffs = []
     for b_v in b_vs:
-        teffs.append(8575 - 5222.27 * b_v
-                     + 1380.92 * b_v**2
-                     + 701.7 * b_v * (cluster.fe_h - 0.15))
+        if b_v > -0.04:
+            x = (14.551 - b_v) / 3.684
+        else:
+            x = (3.402 - math.sqrt(0.515 + 1.376 * b_v)) / 0.688
+
+        teffs.append(math.pow(10, x))
     return teffs
 
 
