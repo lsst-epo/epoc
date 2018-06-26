@@ -35,6 +35,11 @@ git clone https://github.com/lsst-epo/jupyterlab_celltools.git /opt/jupyterlab_c
 (cd /opt/jupyterlab_celltools && npm install && npm run build)
 jupyter labextension link /opt/jupyterlab_celltools
 
+# Install our own EPO theme.
+git clone https://github.com/lsst-epo/jupyterlab_epotheme.git /opt/jupyterlab_epotheme
+(cd /opt/jupyterlab_epotheme && npm install && npm run build)
+jupyter labextension link /opt/jupyterlab_epotheme
+
 # Final build
 jupyter lab clean
 jupyter lab build
