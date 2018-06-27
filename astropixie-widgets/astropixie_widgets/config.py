@@ -15,10 +15,14 @@ def remote_jupyter_proxy_url(port):
     If port is None we're asking about the URL
     for the origin header.
     """
-    if port is None:
-        return '*'
-
     base_url = os.environ['EXTERNAL_URL']
+    host = urllib.parse.urlparse(base_url).netloc
+
+    # If port is None we're asking for the URL origin
+    # so return the public hostname.
+    if port is None:
+        return host
+
     service_url_path = os.environ['JUPYTERHUB_SERVICE_PREFIX']
     proxy_url_path = 'proxy/%d' % port
 
@@ -84,6 +88,7 @@ def setup_notebook(debug=False):
     if 'JUPYTERHUB_SERVICE_PREFIX' not in os.environ:
         global jupyter_proxy_url
         jupyter_proxy_url = 'localhost:8888'
+        logging.info('Setting jupyter proxy to local mode.')
 
 
 def show_with_bokeh_server(obj, output=None):
