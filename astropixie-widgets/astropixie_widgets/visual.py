@@ -628,7 +628,7 @@ WHERE p.clean = 1 and p.probPSF = 1
             logging.warning(e)
 
     def _set_selection_ids(self, selection_ids):
-        if self.selection_ids:
+        if selection_ids:
             self.selection_ids = [np.int64(i) for i in selection_ids]
         else:
             self.selection_ids = [0]
