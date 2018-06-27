@@ -2,6 +2,7 @@
 Visual for H-R diagram investigations.
 """
 import math
+import logging
 import random
 import time
 
@@ -426,12 +427,14 @@ class SHRD():
     region = None
     selection_ids = None
     horizontal = True
+    show_sliders = None
     temperature_range_slider = None
     luminosity_range_slider = None
 
-    def __init__(self, name='Berkeley 20', horizontal=True):
+    def __init__(self, name='Berkeley 20', horizontal=True, show_sliders=True):
         self.horizontal = horizontal
         self.name = name
+        self.show_sliders = show_sliders
         self._catalog()
 
     def _skyviewer(self):
@@ -507,21 +510,22 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.pf.yaxis.axis_label = yaxis_label
         self.pf.yaxis.formatter = NumeralTickFormatter()
 
-        self.temperature_range_slider = RangeSlider(title='Temperature',
-            value=(x_range[1], x_range[0]), start=x_range[1],
-            end=x_range[0], step=25.0)
-        self.temperature_range_slider.callback_policy = SliderCallbackPolicy.throttle
-        self.temperature_range_slider.callback_throttle = 250.0
-        self.temperature_range_slider.on_change('value', self._update_slider_range)
+        if self.show_sliders:
+            self.temperature_range_slider = RangeSlider(title='Temperature',
+                value=(x_range[1], x_range[0]), start=x_range[1],
+                end=x_range[0], step=25.0)
+            self.temperature_range_slider.callback_policy = SliderCallbackPolicy.throttle
+            self.temperature_range_slider.callback_throttle = 250.0
+            self.temperature_range_slider.on_change('value', self._update_slider_range)
 
-        self.luminosity_range_slider = RangeSlider(title='Luminosity',
-            value=(.95 * min(y), 1.05 * max(y)), start=(.95 * min(y)),
-            end=(1.05 * max(y)), step=0.2)
-        self.luminosity_range_slider.on_change('value', self._update_slider_range)
-        self.temperature_range_slider.callback_policy = SliderCallbackPolicy.throttle
-        self.temperature_range_slider.callback_throttle = 250.0
+            self.luminosity_range_slider = RangeSlider(title='Luminosity',
+                value=(.95 * min(y), 1.05 * max(y)), start=(.95 * min(y)),
+                end=(1.05 * max(y)), step=0.2)
+            self.luminosity_range_slider.on_change('value', self._update_slider_range)
+            self.temperature_range_slider.callback_policy = SliderCallbackPolicy.throttle
+            self.temperature_range_slider.callback_throttle = 250.0
 
-        sliders = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
+            sliderbox = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
 
         def reset_(event):
             logging.debug('reset!')
@@ -531,7 +535,10 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.session.data_source.on_change('selected', self._hr_selection)
         self.pf.on_event(Reset, reset_)
 
-        doc.add_root(column(self.pf, sliders))
+        if self.show_sliders:
+            doc.add_root(column(self.pf, sliderbox))
+        else:
+            doc.add_root(self.pf)
 
     def _hr_selection(self, attr, old, new):
         inds = np.array(new['1d']['indices'])
@@ -585,6 +592,9 @@ WHERE p.clean = 1 and p.probPSF = 1
 
     def _filter_indices_on_sliders(self, temps, lums, indices):
         """Based on the values of the sliders, filter out unwanted indices."""
+        if not self.show_sliders:
+            return indices
+
         filtered_indices = []
 
         min_temp = self.temperature_range_slider.value[0]
