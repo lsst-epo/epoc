@@ -30,7 +30,7 @@ import pandas as pd
 from astropixie.data import Berkeley20, NGC2849, get_hr_data, L_ZERO_POINT,\
     SDSSRegion
 
-from .config import logger, show_with_bokeh_server
+from .config import show_with_bokeh_server
 from .science import absolute_mag, distance, luminosity, teff, color,\
     round_arr_teff_luminosity
 
@@ -410,7 +410,7 @@ def hr_diagram_select(cluster):
     pf.yaxis.formatter = NumeralTickFormatter()
 
     def update(attr, old, new):
-        logger.debug('lasso update!')
+        logging.debug('lasso update!')
 
     session.data_source.on_change('selected', update)
     show_with_bokeh_server(pf)
@@ -524,7 +524,7 @@ WHERE p.clean = 1 and p.probPSF = 1
         sliders = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
 
         def reset_(event):
-            logger.debug('reset!')
+            logging.debug('reset!')
 
         self.doc = doc
         self.aladin.selection_update = self.meta_selection_update
@@ -563,7 +563,7 @@ WHERE p.clean = 1 and p.probPSF = 1
                 self.aladin.add_table(self.cat)
                 show_with_bokeh_server(self._hr_diagram_select)
         except Exception as e:
-            logger.debug(e)
+            logging.debug(e)
 
     def _add_null_selection(self, temps, lums, ids, colors):
         temps.insert(0, 0)
@@ -623,9 +623,9 @@ WHERE p.clean = 1 and p.probPSF = 1
                     self.session.data_source.on_change('selected',
                                                        self._hr_selection)
             else:
-                logger.warning('Figure does not exist.')
+                logging.warning('Figure does not exist.')
         except Exception as e:
-            logger.warning(e)
+            logging.warning(e)
 
     def _set_selection_ids(self, selection_ids):
         if self.selection_ids:
