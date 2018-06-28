@@ -3,6 +3,9 @@ hub:
     JUPYTER_ENABLE_LAB: 1
   extraConfig: |
     c.KubeSpawner.cmd = ['start-singleuser.sh']
+    c.JupyterHub.log_level = 'DEBUG'
+    c.Spawner.debug = True
+    c.LocalProcessSpawner.debug = True
 singleuser:
   image:
     name: lsstepo/jupyterlab
