@@ -500,12 +500,16 @@ WHERE p.clean = 1 and p.probPSF = 1
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         hover = self.pf.select(HoverTool)[0]
+        hover.names = ['selected']
         hover.tooltips = [("index", "$index{0}"),
                           ("Temperature (Kelvin)", "@x{0}"),
                           ("Luminosity (solar units)", "@y{0.00}")]
         self.session = self.pf.circle(x='x', y='y', source=source,
                                       size=5, color=color, alpha=1, name=name,
                                       line_color=line_color, line_width=0.5)
+        self.session.nonselection_glyph.fill_alpha = 0.0
+        self.session.nonselection_glyph.fill_color = 'white'
+        self.session.nonselection_glyph.line_color = None
         self.pf.xaxis.axis_label = xaxis_label
         self.pf.yaxis.axis_label = yaxis_label
         self.pf.yaxis.formatter = NumeralTickFormatter()
@@ -539,11 +543,13 @@ WHERE p.clean = 1 and p.probPSF = 1
             doc.add_root(column(self.pf, sliderbox))
         else:
             doc.add_root(self.pf)
+        self._hr_selection_null()
 
     def _hr_selection_adjust_indices(self, inds):
         return [i - 1 for i in inds]
 
     def _hr_selection_null(self):
+        self.selection_ids = [0]
         self.session.data_source.selected = Selection(indices=[0])
         self.aladin.selection_ids = []
 
@@ -554,9 +560,7 @@ WHERE p.clean = 1 and p.probPSF = 1
             aladin_selection_ids = np.take(self.region.cat['objID'], inds)
             self.aladin.selection_ids = [str(s) for s in aladin_selection_ids]
         else:
-            self.selection_ids = [0]
-            self.aladin.selection_ids = []
-            self.doc.add_next_tick_callback(self._hr_selection_null)
+            self._hr_selection_null()
 
     def _box(self, output):
         text_box = widgets.HBox(children=[
