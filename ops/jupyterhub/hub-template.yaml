@@ -6,6 +6,8 @@ hub:
     c.JupyterHub.log_level = 'DEBUG'
     c.Spawner.debug = True
     c.LocalProcessSpawner.debug = True
+cull:
+  enabled: false
 singleuser:
   image:
     name: lsstepo/jupyterlab
