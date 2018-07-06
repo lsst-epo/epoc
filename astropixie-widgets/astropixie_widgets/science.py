@@ -48,7 +48,7 @@ def absolute_mag(cluster):
     teffs = teff(cluster)
     _, vs = cluster.stars()
     for t, v in zip(teffs, vs):
-        abs_mags.append(v + bc(t) - 5 * math.log(cluster.distance / 10, 10)
+        abs_mags.append(v + bc(t) - 5 * math.log(cluster.distance.value / 10, 10)
                         - 3.1 * cluster.eb_v)
     return abs_mags
 

@@ -423,19 +423,18 @@ class SHRD():
     """
     aladin = None
     pf = None
+    cluster = None
     doc = None
-    region = None
-    selection_ids = None
+    selection_ids = []
     horizontal = True
     show_sliders = None
     temperature_range_slider = None
     luminosity_range_slider = None
 
-    def __init__(self, name='Berkeley 20', horizontal=True, show_sliders=True):
+    def __init__(self, cluster, horizontal=True, show_sliders=True):
+        self.cluster = cluster
         self.horizontal = horizontal
-        self.name = name
         self.show_sliders = show_sliders
-        self._catalog()
 
     def _skyviewer(self):
         if self.horizontal:
@@ -443,7 +442,7 @@ class SHRD():
         else:
             layout = widgets.Layout(min_width='100%', min_height='600px')
         self.aladin = ipyaladin.Aladin(
-            target='Berkeley 20', fov=0.42, survey='P/SDSS9/color',
+            target=self.cluster.name, fov=0.42, survey='P/SDSS9/color',
             layout=layout)
         self.aladin.show_reticle = False
         self.aladin.show_zoom_control = False
@@ -456,32 +455,12 @@ class SHRD():
         self.aladin.show_coo_grid = False
         return self.aladin
 
-    def _catalog(self):
-        query = """
-SELECT TOP 3200
-       p.objID,
-       p.ra,
-       p.dec,
-       p.u,
-       p.g,
-       p.r,
-       p.i,
-       p.z
-FROM PhotoPrimary AS p
-JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 3.24)
-  AS r ON r.objID = p.objID
-WHERE p.clean = 1 and p.probPSF = 1
-"""
-        self.cat = SDSS.query_sql(query)
-        return self.cat
-
     def _update_slider_range(self, attr, old, new):
         self.doc.add_next_tick_callback(self._skyviewer_selection)
 
     def _hr_diagram_select(self, doc):
-        self.region = SDSSRegion(self.cat.copy())
-        temps, lums = round_teff_luminosity(self.region)
-        ids = self.region.ids()
+        temps, lums = round_teff_luminosity(self.cluster)
+        ids = self.cluster.ids()
         x, y = temps, lums
         colors, color_mapper = hr_diagram_color_helper(temps)
         x_range = [max(x) + max(x) * 0.05, min(x) - min(x) * 0.05]
@@ -496,7 +475,7 @@ WHERE p.clean = 1 and p.probPSF = 1
         line_color = '#444444'
         self.pf = figure(y_axis_type='log', x_range=x_range,
                          tools='lasso_select,box_select,reset,hover',
-                         title='H-R Diagram for {0}'.format(self.region.name))
+                         title='H-R Diagram for {0}'.format(self.cluster.name))
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         hover = self.pf.select(HoverTool)[0]
@@ -542,35 +521,32 @@ WHERE p.clean = 1 and p.probPSF = 1
 
     def _hr_selection(self, attr, old, new):
         inds = np.array(new['1d']['indices'])
-        aladin_selection_ids = np.take(self.region.cat['objID'], inds)
+        aladin_selection_ids = np.take(self.cluster.ids(), inds)
         self.aladin.selection_ids = [str(s) for s in aladin_selection_ids]
 
     def _box(self, output):
         text_box = widgets.HBox(children=[
             widgets.Label(
                 'Type in the name of your cluster and press Enter/Return:'),
-            widgets.Text(value=self.name, placeholder=self.name,
+            widgets.Text(value=self.cluster.name, placeholder=self.cluster.name,
                          description='',disabled=False)])
         box = widgets.HBox(children=[self.aladin, output])
         return widgets.VBox(children=[text_box, box])
         
     def show(self):
-        try:
-            self._skyviewer()
-            if self.horizontal:
-                output = widgets.Output()
-                self.handler = show_with_bokeh_server(
-                    self._hr_diagram_select, output=output)
-                box = self._box(output)
-                widgets.widget.display(box,layout=widgets.Layout(width='auto'))
-                time.sleep(0.8)
-                self.aladin.add_table(self.cat)
-            else:
-                widgets.widget.display(self.aladin)
-                self.aladin.add_table(self.cat)
-                show_with_bokeh_server(self._hr_diagram_select)
-        except Exception as e:
-            logging.debug(e)
+        self._skyviewer()
+        if self.horizontal:
+            output = widgets.Output()
+            self.handler = show_with_bokeh_server(
+                self._hr_diagram_select, output=output)
+            box = self._box(output)
+            widgets.widget.display(box,layout=widgets.Layout(width='auto'))
+            time.sleep(0.8)
+            self.aladin.add_table(self.cluster.catalog)
+        else:
+            widgets.widget.display(self.aladin)
+            self.aladin.add_table(self.cluster.catalog)
+            show_with_bokeh_server(self._hr_diagram_select)
 
     def _add_null_selection(self, temps, lums, ids, colors):
         temps.insert(0, 0)
@@ -582,10 +558,10 @@ WHERE p.clean = 1 and p.probPSF = 1
         colors.insert(0, 'white')
 
     def _filter_selection(self):
-        all_ids = self.region.to_array()['id']
-        df = pd.DataFrame(all_ids.flatten(), columns=[np.int64])
+        all_ids = self.cluster.ids()
+        df = pd.DataFrame(all_ids, columns=[np.int64])
         select_indices = list(np.where(df.isin(self.selection_ids))[0])
-        temps, lums = round_teff_luminosity(self.region)
+        temps, lums = round_teff_luminosity(self.cluster)
         colors, _ = hr_diagram_color_helper(temps)
         self._add_null_selection(temps, lums, all_ids, colors)
         return temps, lums, all_ids, colors, select_indices
@@ -611,31 +587,28 @@ WHERE p.clean = 1 and p.probPSF = 1
         return filtered_indices
 
     def _skyviewer_selection(self):
-        try:
-            if self.pf:
-                selected = self.pf.select(name='hr')
-                if selected:
-                    new_temps, new_lums, new_ids, colors, indices \
-                        = self._filter_selection()
-                    indices = self._filter_indices_on_sliders(new_temps, new_lums, indices)
-                    selection = Selection(indices=indices)
-                    new_source = ColumnDataSource(
-                        data=dict(x=new_temps, y=new_lums, ids=new_ids,
-                                  color=colors), selected=selection, name='hr')
-                    if isinstance(selected[0], ColumnDataSource):
-                        selected_old = selected[0].selected
-                        self.session.data_source = new_source
-                    elif selected[0]:
-                        selected_old = selected[0].data_source.selected
-                        selected[0].data_source = new_source
-                    self.session.data_source.trigger('selected', selected_old,
-                                                     selection)
-                    self.session.data_source.on_change('selected',
-                                                       self._hr_selection)
-            else:
-                logging.warning('Figure does not exist.')
-        except Exception as e:
-            logging.warning(e)
+        if self.pf:
+            selected = self.pf.select(name='hr')
+            if selected:
+                new_temps, new_lums, new_ids, colors, indices \
+                    = self._filter_selection()
+                indices = self._filter_indices_on_sliders(new_temps, new_lums, indices)
+                selection = Selection(indices=indices)
+                new_source = ColumnDataSource(
+                    data=dict(x=new_temps, y=new_lums, ids=new_ids,
+                              color=colors), selected=selection, name='hr')
+                if isinstance(selected[0], ColumnDataSource):
+                    selected_old = selected[0].selected
+                    self.session.data_source = new_source
+                elif selected[0]:
+                    selected_old = selected[0].data_source.selected
+                    selected[0].data_source = new_source
+                self.session.data_source.trigger('selected', selected_old,
+                                                 selection)
+                self.session.data_source.on_change('selected',
+                                                   self._hr_selection)
+        else:
+            logging.warning('Figure does not exist.')
 
     def _set_selection_ids(self, selection_ids):
         if selection_ids:

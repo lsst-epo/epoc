@@ -4,19 +4,17 @@ import re
 from urllib.request import urlopen
 from urllib.parse import urljoin
 
-from astropy import units as u
+from astropy import units
 from astropy.coordinates import SkyCoord
 
 from astroquery.sdss import SDSS
 
 import numpy as np
-
 import pandas as pd
 
 
 class OpenCluster(object):
-    ra = None
-    dec = None
+    coord = None
     distance = None
 
     def stars(cls):
@@ -35,8 +33,7 @@ class Berkeley20(SampleOpenCluster):
     http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Berkeley20&submit=submit+id
     https://www.aanda.org/articles/aa/abs/2002/27/aa2476/aa2476.html
     """
-    coord = SkyCoord('05 32 37.0 +00 11 18', unit=(u.hourangle, u.deg),
-                     distance=9000 * u.parsec)  # +- 480
+    distance = 9000 * units.parsec # +- 480
     fe_h = -0.3
     tau = 5.5
     eb_v = 0.12
@@ -50,9 +47,9 @@ class Berkeley20(SampleOpenCluster):
               ('err_b_v', 'f'), ('err_v_r', 'f'),
               ('err_v_i', 'f'), ('lum', 'f'), ('temp', 'f')]
 
-    @property
-    def distance(self):
-        return self.coord.distance.value
+    coord = SkyCoord('05 32 37.0 +00 11 18',
+                     unit=(units.hourangle, units.deg),
+                     distance=distance)
 
     def cds_stars(cls):
         data_source = cls._get_data_source('berkeley20.tsv')
@@ -106,46 +103,46 @@ class Berkeley20(SampleOpenCluster):
             return data
 
 
-class SDSSRegion(Berkeley20):
+class SDSSRegion(OpenCluster):
     """
-    An SDSS (ugriz) region of the sky. Expects PSFs and can be used with
-    astropixie widgets.
-
-    Default to Berkeley 20, but accept astropy tables.
+    SDSS (urgiz) region that is defined by a defined SQL query.
     """
 
+    """
+    catalog: contains the results of the SQL query.
+    """
+    catalog = None
+
+    """
+    Data types to construct a numpy array:
+
+    id: SDSS defined int64 ID.
+    u, g, r, i: visual bands as floats for the given ID.
+    g_r, r_i:
+    lum: Luminosity of the ID.
+    temp: Calculated temperature of the object.
+    """
     _dtype = [('id', np.int64), ('u', 'f'), ('g', 'f'), ('r', 'f'), ('i', 'f'),
               ('g_r', 'f'), ('r_i', 'f'),
               ('lum', 'f'), ('temp', 'f')]
 
-    def __init__(self, table=None):
-        if not table:
-            self.cat = self.get_cat()
-        else:
-            self.cat = table
-        self.raw = self.cat
+    def __init__(self, query):
+        self.catalog = SDSS.query_sql(query)
 
-    def get_cat(self):
-        query = """
-SELECT TOP 2000
-       p.objID,
-       p.ra,
-       p.dec,
-       p.u,
-       p.g,
-       p.r,
-       p.i,
-       p.z
-FROM PhotoPrimary AS p
-JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 1.32)
-  AS r ON r.objID = p.objID
-WHERE p.clean = 1 and p.probPSF = 1
-        """
-        return SDSS.query_sql(query)
+    def _dtype_row(self, arr, values):
+        i = 0
+        v_len = len(values)
+        for name in arr.dtype.names:
+            if i < v_len:
+                values[i] = arr.dtype[name].type(values[i])
+            else:
+                values.append(0)
+            i += 1
+        return np.array([tuple(values)], dtype=self._dtype)
 
     def stars(self):
         data = []
-        for row in self.cat:
+        for row in self.catalog:
             g = row['g']
             r = row['r']
             # Use V and R so the data is similar to the VizieR data.
@@ -159,7 +156,7 @@ WHERE p.clean = 1 and p.probPSF = 1
     def to_array(self):
         values = ['id', 'u', 'g', 'r', 'i', 'g_r', 'r_i', 'lum', 'temp']
         data = np.empty((0, 1), dtype=self._dtype)
-        for r in self.cat:
+        for r in self.catalog:
             v = []
             v.append(r['objID'])
             v.append(r['u'])
@@ -174,9 +171,47 @@ WHERE p.clean = 1 and p.probPSF = 1
 
     def ids(self):
         data = []
-        for row in self.cat:
+        for row in self.catalog:
             data.append(row['objID'])
         return data
+
+
+class Berkeley20SDSS(SDSSRegion):
+    """
+    SDSS (urgiz) region containing Berkeley 20.
+    """
+
+    """
+    Info about Berkeley 20:
+    name: Name of the cluster in Aladin
+    eb_v: extinction value E(B-V)
+    distance: distance from earth to the cluster
+    query: SDSS query to retrieve cluster stars
+    """
+    name = 'Berkeley 20'
+    eb_v = 0.12
+    distance = 9000 * units.parsec # +- 480
+    query = """
+SELECT TOP 3200
+       p.objID,
+       p.ra,
+       p.dec,
+       p.u,
+       p.g,
+       p.r,
+       p.i,
+       p.z
+FROM PhotoPrimary AS p
+JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 3.24)
+  AS r ON r.objID = p.objID
+WHERE p.clean = 1 and p.probPSF = 1
+"""
+
+    def __init__(self):
+        """
+        Initialize the data using the query for Berkeley 20.
+        """
+        super().__init__(self.query)
 
 
 class NGC2849(SampleOpenCluster):
@@ -184,8 +219,10 @@ class NGC2849(SampleOpenCluster):
     paper: http://iopscience.iop.org/article/10.1086/424939/pdf
            https://academic.oup.com/mnras/article/430/1/221/984833
     """
-    coord = SkyCoord('09 19 23.0 -40 31 01', unit=(u.hourangle, u.deg),
-                     distance=6110 * u.parsec)
+    distance = 6110 * units.parsec
+    coord = SkyCoord('09 19 23.0 -40 31 01',
+                     unit=(units.hourangle, units.deg),
+                     distance=distance)
 
     def stars(cls):
         data_source = self._get_data_source('ngc2849-kyeong.dat')
@@ -208,8 +245,10 @@ class NGC7790(SampleOpenCluster):
     """
     paper: https://aas.aanda.org/articles/aas/pdf/2000/15/ds6060.pdf
     """
-    coord = SkyCoord('23 58 24.0 +61 12 30', unit=(u.hourangle, u.deg),
-                     distance=3230 * u.parsec)
+    distance = 3230 * units.parsec
+    coord = SkyCoord('23 58 24.0 +61 12 30',
+                     unit=(units.hourangle, units.deg),
+                     distance=distance)
 
 
 # http://adsbit.harvard.edu/cgi-bin/nph-iarticle_query?bibcode=1968ApJ...151..611M&db_key=AST&page_ind=3&data_type=GIF&type=SCREEN_VIEW&classic=YES
@@ -303,4 +342,4 @@ def pprint(arr, columns=('temp', 'lum'),
                             names[1]: '{:.2f}'})
 
 
-L_ZERO_POINT = 3.0128 * pow(10, 28)  # units to add:  * u.watt
+L_ZERO_POINT = 3.0128 * pow(10, 28)  # units to add:  * units.watt
