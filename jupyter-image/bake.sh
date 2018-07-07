@@ -24,7 +24,7 @@ pip install git+https://github.com/jupyterhub/nbserverproxy
 jupyter serverextension enable --py nbserverproxy
 
 # Install jupyter extensions.
-jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
+jupyter labextension install @jupyter-widgets/jupyterlab-manager@0.35 --no-build
 
 # Install astropixie API library
 pip install -e /opt/astropixie

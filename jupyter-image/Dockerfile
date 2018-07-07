@@ -1,4 +1,4 @@
-FROM jupyter/minimal-notebook:latest
+FROM jupyter/minimal-notebook:e7000ca1416d
 
 # Add our astropixie API library
 ADD astropixie /opt/astropixie
