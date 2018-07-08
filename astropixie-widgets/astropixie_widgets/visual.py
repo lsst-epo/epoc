@@ -460,13 +460,22 @@ class SHRD():
 
     def _hr_diagram_select(self, doc):
         temps, lums = round_teff_luminosity(self.cluster)
-        ids = self.cluster.ids()
-        x, y = temps, lums
         colors, color_mapper = hr_diagram_color_helper(temps)
+
+        x, y = temps, lums
         x_range = [max(x) + max(x) * 0.05, min(x) - min(x) * 0.05]
-        self._add_null_selection(temps, lums, ids, colors)
-        source = ColumnDataSource(data=dict(x=x, y=y, id=ids, color=colors),
-                                  name='hr')
+        logging.debug("Setting up HR diagram, x-axis range: %s", x_range)
+
+        data = {
+            'x': temps,
+            'y': lums,
+            'id': list(self.cluster.ids()),
+            'color': colors
+        }
+
+        logging.debug("Setting up HR diagram, data: %s", data)
+
+        source = ColumnDataSource(data=data, name='hr')
         name = 'hr'
         color = {'field': 'color',
                  'transform': color_mapper}
@@ -548,22 +557,12 @@ class SHRD():
             self.aladin.add_table(self.cluster.table)
             show_with_bokeh_server(self._hr_diagram_select)
 
-    def _add_null_selection(self, temps, lums, ids, colors):
-        temps.insert(0, 0)
-        lums.insert(0, 0)
-        if isinstance(ids, np.ndarray):
-            np.insert(ids, 0, 0, axis=0)
-        else:
-            ids.insert(0, 0)
-        colors.insert(0, 'white')
-
     def _filter_selection(self):
         all_ids = self.cluster.ids()
         df = pd.DataFrame(all_ids, columns=[np.int64])
         select_indices = list(np.where(df.isin(self.selection_ids))[0])
         temps, lums = round_teff_luminosity(self.cluster)
         colors, _ = hr_diagram_color_helper(temps)
-        self._add_null_selection(temps, lums, all_ids, colors)
         return temps, lums, all_ids, colors, select_indices
 
     def _filter_indices_on_sliders(self, temps, lums, indices):
