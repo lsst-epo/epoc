@@ -542,10 +542,10 @@ class SHRD():
             box = self._box(output)
             widgets.widget.display(box,layout=widgets.Layout(width='auto'))
             time.sleep(0.8)
-            self.aladin.add_table(self.cluster.catalog)
+            self.aladin.add_table(self.cluster.table)
         else:
             widgets.widget.display(self.aladin)
-            self.aladin.add_table(self.cluster.catalog)
+            self.aladin.add_table(self.cluster.table)
             show_with_bokeh_server(self._hr_diagram_select)
 
     def _add_null_selection(self, temps, lums, ids, colors):

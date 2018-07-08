@@ -6,10 +6,9 @@ from urllib.parse import urljoin
 
 from astropy import units
 from astropy.coordinates import SkyCoord
-
 from astroquery.sdss import SDSS
-
 import numpy as np
+from numpy.lib.recfunctions import append_fields
 import pandas as pd
 
 
@@ -109,71 +108,34 @@ class SDSSRegion(OpenCluster):
     """
 
     """
-    catalog: contains the results of the SQL query.
+    catalog: numpy structured array of stars and their bands.
+    table: Astropy table of data returned from SDSS query.
     """
     catalog = None
-
-    """
-    Data types to construct a numpy array:
-
-    id: SDSS defined int64 ID.
-    u, g, r, i: visual bands as floats for the given ID.
-    g_r, r_i:
-    lum: Luminosity of the ID.
-    temp: Calculated temperature of the object.
-    """
-    _dtype = [('id', np.int64), ('u', 'f'), ('g', 'f'), ('r', 'f'), ('i', 'f'),
-              ('g_r', 'f'), ('r_i', 'f'),
-              ('lum', 'f'), ('temp', 'f')]
+    table = None
 
     def __init__(self, query):
-        self.catalog = SDSS.query_sql(query)
+        self.table = SDSS.query_sql(query)
+        self.table.rename_column('objID', 'id')
+        self.catalog = np.array(self.table)
 
-    def _dtype_row(self, arr, values):
-        i = 0
-        v_len = len(values)
-        for name in arr.dtype.names:
-            if i < v_len:
-                values[i] = arr.dtype[name].type(values[i])
-            else:
-                values.append(0)
-            i += 1
-        return np.array([tuple(values)], dtype=self._dtype)
+        # Calculate B and V like the VizieR data.
+        # Use Robert Lupton's derived equations found here:
+        # http://www.sdss3.org/dr8/algorithms/sdssUBVRITransform.php
+        g = self.catalog['g']
+        r = self.catalog['r']
+
+        B = g + 0.3130 * (g - r) + 0.2271 # sigma = 0.0107
+        V = g - 0.5784 * (g - r) - 0.0038 # sigma = 0.0054
+
+        self.catalog = append_fields(self.catalog, 'B', B)
+        self.catalog = append_fields(self.catalog, 'V', V)
 
     def stars(self):
-        data = []
-        for row in self.catalog:
-            g = row['g']
-            r = row['r']
-            # Use V and R so the data is similar to the VizieR data.
-            V = g - 0.5784*(g - r) - 0.0038  # sigma = 0.0054
-            R = r - 0.1837*(g - r) - 0.0971  # sigma = 0.0106
-            data.append([V, V - R])
-        x = [data[i][1] for i in range(len(data))]
-        y = [data[i][0] for i in range(len(data))]
-        return (x, y)
-
-    def to_array(self):
-        values = ['id', 'u', 'g', 'r', 'i', 'g_r', 'r_i', 'lum', 'temp']
-        data = np.empty((0, 1), dtype=self._dtype)
-        for r in self.catalog:
-            v = []
-            v.append(r['objID'])
-            v.append(r['u'])
-            v.append(r['g'])
-            v.append(r['r'])
-            v.append(r['i'])
-            v.append(r['g'] - r['r'])
-            v.append(r['r'] - r['i'])
-            newrow = self._dtype_row(data, v)
-            data = np.row_stack((data, newrow))
-        return data
+        return (self.catalog['B'] - self.catalog['V'], self.catalog['V'])
 
     def ids(self):
-        data = []
-        for row in self.catalog:
-            data.append(row['objID'])
-        return data
+        return self.catalog['id']
 
 
 class Berkeley20SDSS(SDSSRegion):
