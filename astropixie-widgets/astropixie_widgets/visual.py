@@ -10,11 +10,9 @@ import astropy
 from astroquery.sdss import SDSS
 
 from bokeh.core.enums import SliderCallbackPolicy
-from bokeh.events import Reset
 from bokeh.layouts import row, column, widgetbox
 from bokeh.models import CategoricalColorMapper, ColumnDataSource,\
-    CustomJS, LassoSelectTool, BoxSelectTool, Range1d, ResetTool,\
-    HoverTool
+    CustomJS, LassoSelectTool, BoxSelectTool, HoverTool
 from bokeh.models.formatters import NumeralTickFormatter, BasicTickFormatter
 from bokeh.models.selections import Selection
 from bokeh.models.widgets import RangeSlider, Slider, TextInput, Div
@@ -515,13 +513,9 @@ class SHRD():
 
             sliderbox = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
 
-        def reset_(event):
-            logging.debug('reset!')
-
         self.doc = doc
         self.aladin.selection_update = self.meta_selection_update
         self.session.data_source.on_change('selected', self._hr_selection)
-        self.pf.on_event(Reset, reset_)
 
         if self.show_sliders:
             doc.add_root(column(self.pf, sliderbox))
