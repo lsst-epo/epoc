@@ -588,7 +588,7 @@ class SHRD():
                 indices = self._filter_indices_on_sliders(new_temps, new_lums, indices)
                 selection = Selection(indices=indices)
                 new_source = ColumnDataSource(
-                    data=dict(x=new_temps, y=new_lums, ids=new_ids,
+                    data=dict(x=new_temps, y=new_lums, ids=list(new_ids),
                               color=colors), selected=selection, name='hr')
                 if isinstance(selected[0], ColumnDataSource):
                     selected_old = selected[0].selected

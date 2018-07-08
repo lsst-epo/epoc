@@ -8,7 +8,7 @@ from astropy import units
 from astropy.coordinates import SkyCoord
 from astroquery.sdss import SDSS
 import numpy as np
-from numpy.lib.recfunctions import append_fields
+from numpy.lib.recfunctions import append_fields, rename_fields
 import pandas as pd
 
 
@@ -116,8 +116,8 @@ class SDSSRegion(OpenCluster):
 
     def __init__(self, query):
         self.table = SDSS.query_sql(query)
-        self.table.rename_column('objID', 'id')
         self.catalog = np.array(self.table)
+        self.catalog = rename_fields(self.catalog, {'objID': 'id'})
 
         # Calculate B and V like the VizieR data.
         # Use Robert Lupton's derived equations found here:
