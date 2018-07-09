@@ -434,7 +434,7 @@ class SHRD():
         self.horizontal = horizontal
         self.show_sliders = show_sliders
 
-    def _skyviewer(self):
+    def _show_skyviewer(self):
         if self.horizontal:
             layout = widgets.Layout(min_width='50%', min_height='600px')
         else:
@@ -451,12 +451,11 @@ class SHRD():
         self.aladin.show_catalog = True
         self.aladin.show_frame = False
         self.aladin.show_coo_grid = False
-        return self.aladin
 
     def _update_slider_range(self, attr, old, new):
         self.doc.add_next_tick_callback(self._skyviewer_selection)
 
-    def _hr_diagram_select(self, doc):
+    def _show_hr_diagram(self, doc):
         temps, lums = round_teff_luminosity(self.cluster)
         colors, color_mapper = hr_diagram_color_helper(temps)
 
@@ -537,11 +536,11 @@ class SHRD():
         return widgets.VBox(children=[text_box, box])
         
     def show(self):
-        self._skyviewer()
+        self._show_skyviewer()
         if self.horizontal:
             output = widgets.Output()
             self.handler = show_with_bokeh_server(
-                self._hr_diagram_select, output=output)
+                self._show_hr_diagram, output=output)
             box = self._box(output)
             widgets.widget.display(box,layout=widgets.Layout(width='auto'))
             time.sleep(0.8)
@@ -549,7 +548,7 @@ class SHRD():
         else:
             widgets.widget.display(self.aladin)
             self.aladin.add_table(self.cluster.table)
-            show_with_bokeh_server(self._hr_diagram_select)
+            show_with_bokeh_server(self._show_hr_diagram)
 
     def _filter_selection(self):
         all_ids = self.cluster.ids()
