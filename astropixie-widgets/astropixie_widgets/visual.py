@@ -425,7 +425,9 @@ class SHRD():
     color_mapper = None
     cluster = None
     doc = None
+    selected_data = None
     selection_ids = []
+    source = None
     horizontal = True
     show_sliders = None
     temperature_range_slider = None
@@ -436,6 +438,7 @@ class SHRD():
         self.horizontal = horizontal
         self.show_sliders = show_sliders
         self._calculate_cluster_data()
+        self._filter_cluster_data()
 
     def _calculate_cluster_data(self):
         temps, lums = round_teff_luminosity(self.cluster)
@@ -447,6 +450,19 @@ class SHRD():
                                              'luminosity', lums)
         self.cluster.catalog = append_fields(self.cluster.catalog,
                                              'color', colors)
+
+    def _filter_cluster_data(self):
+        mask = np.isin(self.cluster.catalog['id'], self.selection_ids)
+        selected_cluster = self.cluster.catalog[mask]
+
+        self.selected_data = {
+            'id': list(selected_cluster['id']),
+            'temperature': list(selected_cluster['temperature']),
+            'luminosity': list(selected_cluster['luminosity']),
+            'color': list(selected_cluster['color'])
+        }
+
+        logging.debug("Selected data is now: %s", self.selected_data)
 
     def _show_skyviewer(self):
         if self.horizontal:
@@ -480,16 +496,9 @@ class SHRD():
                    2 * np.amax(self.cluster.catalog['luminosity'])]
         logging.debug("Setting up HR diagram, y-axis range: %s", y_range)
 
-        data = {
-            'id': list(self.cluster.catalog['id']),
-            'x': list(self.cluster.catalog['temperature']),
-            'y': list(self.cluster.catalog['luminosity']),
-            'color': list(self.cluster.catalog['color'])
-        }
+        logging.debug("Setting up HR diagram, data: %s", self.selected_data)
 
-        logging.debug("Setting up HR diagram, data: %s", data)
-
-        source = ColumnDataSource(data=data, name='hr')
+        self.source = ColumnDataSource(data=self.selected_data, name='hr')
 
         self.pf = figure(y_axis_type='log',
                          y_axis_label=yaxis_label,
@@ -505,14 +514,15 @@ class SHRD():
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         hover = self.pf.select(HoverTool)[0]
         hover.tooltips = [("index", "$index{0}"),
-                          (xaxis_label, "@x{0}"),
-                          (yaxis_label, "@y{0.00}")]
+                          (xaxis_label, "@temperature{0}"),
+                          (yaxis_label, "@luminosity{0.00}")]
 
         color = {'field': 'color',
                  'transform': self.color_mapper}
-        self.session = self.pf.circle(x='x', y='y', source=source,
-                                      size=5, color=color, alpha=1, name='hr',
-                                      line_color='#444444', line_width=0.5)
+        self.pf.circle(x='temperature', y='luminosity', source=self.source,
+                       size=5, color=color, alpha=1, name='hr',
+                       line_color='#444444', line_width=0.5)
+        self.source.on_change('selected', self._hr_selection)
 
         if self.show_sliders:
             self.temperature_range_slider = RangeSlider(
@@ -539,7 +549,6 @@ class SHRD():
 
         self.doc = doc
         self.aladin.selection_update = self.meta_selection_update
-        self.session.data_source.on_change('selected', self._hr_selection)
 
         if self.show_sliders:
             doc.add_root(column(self.pf, sliderbox))
@@ -547,9 +556,13 @@ class SHRD():
             doc.add_root(self.pf)
 
     def _hr_selection(self, attr, old, new):
-        inds = np.array(new['1d']['indices'])
-        aladin_selection_ids = np.take(self.cluster.ids(), inds)
-        self.aladin.selection_ids = [str(s) for s in aladin_selection_ids]
+        aladin_selection_ids = []
+
+        for index in new['1d']['indices']:
+            selected_id = self.selected_data['id'][index]
+            aladin_selection_ids.append(str(selected_id))
+
+        self.aladin.selection_ids = aladin_selection_ids
 
     def _box(self, output):
         text_box = widgets.HBox(children=[
@@ -575,18 +588,12 @@ class SHRD():
             self.aladin.add_table(self.cluster.table)
             show_with_bokeh_server(self._show_hr_diagram)
 
-    def _filter_selection(self):
-        all_ids = self.cluster.ids()
-        df = pd.DataFrame(all_ids, columns=[np.int64])
-        select_indices = list(np.where(df.isin(self.selection_ids))[0])
-        temps, lums = round_teff_luminosity(self.cluster)
-        colors, _ = hr_diagram_color_helper(temps)
-        return temps, lums, all_ids, colors, select_indices
-
-    def _filter_indices_on_sliders(self, temps, lums, indices):
+    def _filter_indices_on_sliders(self):
         """Based on the values of the sliders, filter out unwanted indices."""
+        # If sliders aren't shown, return empty list, which will select
+        # all items.
         if not self.show_sliders:
-            return indices
+            return []
 
         filtered_indices = []
 
@@ -595,44 +602,21 @@ class SHRD():
         min_lum = self.luminosity_range_slider.value[0]
         max_lum = self.luminosity_range_slider.value[1]
 
-        for idx in indices:
-            if min_temp <= temps[idx] <= max_temp and \
-               min_lum <= lums[idx] <= max_lum:
+        for idx in range(len(self.selected_data['id'])):
+            if min_temp <= self.selected_data['temperature'][idx] <= max_temp and \
+               min_lum <= self.selected_data['luminosity'][idx] <= max_lum:
                 filtered_indices.append(idx)
         if not filtered_indices:
             filtered_indices = [0]
         return filtered_indices
 
     def _skyviewer_selection(self):
-        if self.pf:
-            selected = self.pf.select(name='hr')
-            if selected:
-                new_temps, new_lums, new_ids, colors, indices \
-                    = self._filter_selection()
-                indices = self._filter_indices_on_sliders(new_temps, new_lums, indices)
-                selection = Selection(indices=indices)
-                new_source = ColumnDataSource(
-                    data=dict(x=new_temps, y=new_lums, ids=list(new_ids),
-                              color=colors), selected=selection, name='hr')
-                if isinstance(selected[0], ColumnDataSource):
-                    selected_old = selected[0].selected
-                    self.session.data_source = new_source
-                elif selected[0]:
-                    selected_old = selected[0].data_source.selected
-                    selected[0].data_source = new_source
-                self.session.data_source.trigger('selected', selected_old,
-                                                 selection)
-                self.session.data_source.on_change('selected',
-                                                   self._hr_selection)
-        else:
-            logging.warning('Figure does not exist.')
-
-    def _set_selection_ids(self, selection_ids):
-        if selection_ids:
-            self.selection_ids = [np.int64(i) for i in selection_ids]
-        else:
-            self.selection_ids = [0]
+        self._filter_cluster_data()
+        indices = self._filter_indices_on_sliders()
+        self.source.data = self.selected_data
+        self.source.selected = Selection(indices=indices)
 
     def meta_selection_update(self, selection_ids):
-        self._set_selection_ids(selection_ids)
+        logging.debug("Skyviewer selected ids: %s", selection_ids)
+        self.selection_ids = [np.int64(i) for i in selection_ids]
         self.doc.add_next_tick_callback(self._skyviewer_selection)
