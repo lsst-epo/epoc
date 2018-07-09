@@ -23,6 +23,7 @@ import ipyaladin
 from ipywidgets import Layout, Box, widgets
 
 import numpy as np
+from numpy.lib.recfunctions import append_fields
 
 import pandas as pd
 
@@ -421,6 +422,7 @@ class SHRD():
     """
     aladin = None
     pf = None
+    color_mapper = None
     cluster = None
     doc = None
     selection_ids = []
@@ -433,6 +435,18 @@ class SHRD():
         self.cluster = cluster
         self.horizontal = horizontal
         self.show_sliders = show_sliders
+        self._calculate_cluster_data()
+
+    def _calculate_cluster_data(self):
+        temps, lums = round_teff_luminosity(self.cluster)
+        colors, self.color_mapper = hr_diagram_color_helper(temps)
+
+        self.cluster.catalog = append_fields(self.cluster.catalog,
+                                             'temperature', temps)
+        self.cluster.catalog = append_fields(self.cluster.catalog,
+                                             'luminosity', lums)
+        self.cluster.catalog = append_fields(self.cluster.catalog,
+                                             'color', colors)
 
     def _show_skyviewer(self):
         if self.horizontal:
@@ -456,59 +470,70 @@ class SHRD():
         self.doc.add_next_tick_callback(self._skyviewer_selection)
 
     def _show_hr_diagram(self, doc):
-        temps, lums = round_teff_luminosity(self.cluster)
-        colors, color_mapper = hr_diagram_color_helper(temps)
-
-        x, y = temps, lums
-        x_range = [max(x) + max(x) * 0.05, min(x) - min(x) * 0.05]
+        xaxis_label = 'Temperature (Kelvin)'
+        x_range = [1.05 * np.amax(self.cluster.catalog['temperature']),
+                   .95 * np.amin(self.cluster.catalog['temperature'])]
         logging.debug("Setting up HR diagram, x-axis range: %s", x_range)
 
+        yaxis_label = 'Luminosity (solar units)'
+        y_range = [.50 * np.amin(self.cluster.catalog['luminosity']),
+                   2 * np.amax(self.cluster.catalog['luminosity'])]
+        logging.debug("Setting up HR diagram, y-axis range: %s", y_range)
+
         data = {
-            'x': temps,
-            'y': lums,
-            'id': list(self.cluster.ids()),
-            'color': colors
+            'id': list(self.cluster.catalog['id']),
+            'x': list(self.cluster.catalog['temperature']),
+            'y': list(self.cluster.catalog['luminosity']),
+            'color': list(self.cluster.catalog['color'])
         }
 
         logging.debug("Setting up HR diagram, data: %s", data)
 
         source = ColumnDataSource(data=data, name='hr')
-        name = 'hr'
-        color = {'field': 'color',
-                 'transform': color_mapper}
-        xaxis_label = 'Temperature (Kelvin)'
-        yaxis_label = 'Luminosity (solar units)'
-        line_color = '#444444'
-        self.pf = figure(y_axis_type='log', x_range=x_range,
+
+        self.pf = figure(y_axis_type='log',
+                         y_axis_label=yaxis_label,
+                         y_range=y_range,
+                         x_axis_type='linear',
+                         x_axis_label=xaxis_label,
+                         x_range=x_range,
                          tools='lasso_select,box_select,reset,hover',
                          title='H-R Diagram for {0}'.format(self.cluster.name))
+        self.pf.yaxis.formatter = BasicTickFormatter(precision=3)
+
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         self.pf.select(LassoSelectTool).select_every_mousemove = False
         hover = self.pf.select(HoverTool)[0]
         hover.tooltips = [("index", "$index{0}"),
-                          ("Temperature (Kelvin)", "@x{0}"),
-                          ("Luminosity (solar units)", "@y{0.00}")]
+                          (xaxis_label, "@x{0}"),
+                          (yaxis_label, "@y{0.00}")]
+
+        color = {'field': 'color',
+                 'transform': self.color_mapper}
         self.session = self.pf.circle(x='x', y='y', source=source,
-                                      size=5, color=color, alpha=1, name=name,
-                                      line_color=line_color, line_width=0.5)
-        self.pf.xaxis.axis_label = xaxis_label
-        self.pf.yaxis.axis_label = yaxis_label
-        self.pf.yaxis.formatter = BasicTickFormatter(precision=3)
+                                      size=5, color=color, alpha=1, name='hr',
+                                      line_color='#444444', line_width=0.5)
 
         if self.show_sliders:
-            self.temperature_range_slider = RangeSlider(title='Temperature',
-                value=(x_range[1], x_range[0]), start=x_range[1],
-                end=x_range[0], step=25.0)
-            self.temperature_range_slider.callback_policy = SliderCallbackPolicy.throttle
-            self.temperature_range_slider.callback_throttle = 250.0
+            self.temperature_range_slider = RangeSlider(
+                title=xaxis_label,
+                callback_policy=SliderCallbackPolicy.throttle,
+                callback_throttle=250.0,
+                value=(x_range[1], x_range[0]),
+                start=x_range[1],
+                end=x_range[0],
+                step=25.0)
             self.temperature_range_slider.on_change('value', self._update_slider_range)
 
-            self.luminosity_range_slider = RangeSlider(title='Luminosity',
-                value=(.95 * min(y), 1.05 * max(y)), start=(.95 * min(y)),
-                end=(1.05 * max(y)), step=0.2)
+            self.luminosity_range_slider = RangeSlider(
+                title=yaxis_label,
+                callback_policy=SliderCallbackPolicy.throttle,
+                callback_throttle=250.0,
+                value=y_range,
+                start=y_range[0],
+                end=y_range[1],
+                step=0.2)
             self.luminosity_range_slider.on_change('value', self._update_slider_range)
-            self.temperature_range_slider.callback_policy = SliderCallbackPolicy.throttle
-            self.temperature_range_slider.callback_throttle = 250.0
 
             sliderbox = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
 
