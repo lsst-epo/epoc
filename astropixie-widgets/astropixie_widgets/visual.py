@@ -540,10 +540,23 @@ WHERE p.clean = 1 and p.probPSF = 1
         else:
             doc.add_root(self.pf)
 
+    def _hr_selection_adjust_indices(self, inds):
+        return [i - 1 for i in inds]
+
+    def _hr_selection_null(self):
+        self.session.data_source.selected = Selection(indices=[0])
+        self.aladin.selection_ids = []
+
     def _hr_selection(self, attr, old, new):
-        inds = np.array(new['1d']['indices'])
-        aladin_selection_ids = np.take(self.region.cat['objID'], inds)
-        self.aladin.selection_ids = [str(s) for s in aladin_selection_ids]
+        inds = self._hr_selection_adjust_indices(
+            np.array(new['1d']['indices']))
+        if inds:
+            aladin_selection_ids = np.take(self.region.cat['objID'], inds)
+            self.aladin.selection_ids = [str(s) for s in aladin_selection_ids]
+        else:
+            self.selection_ids = [0]
+            self.aladin.selection_ids = []
+            self.doc.add_next_tick_callback(self._hr_selection_null)
 
     def _box(self, output):
         text_box = widgets.HBox(children=[
@@ -610,6 +623,9 @@ WHERE p.clean = 1 and p.probPSF = 1
             filtered_indices = [0]
         return filtered_indices
 
+    def _skyviewer_adjust_indices(self, inds):
+        return [i + 1 for i in inds]
+
     def _skyviewer_selection(self):
         try:
             if self.pf:
@@ -617,6 +633,7 @@ WHERE p.clean = 1 and p.probPSF = 1
                 if selected:
                     new_temps, new_lums, new_ids, colors, indices \
                         = self._filter_selection()
+                    indices = self._skyviewer_adjust_indices(indices)
                     indices = self._filter_indices_on_sliders(new_temps, new_lums, indices)
                     selection = Selection(indices=indices)
                     new_source = ColumnDataSource(
