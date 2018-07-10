@@ -502,6 +502,9 @@ class SHRD():
         self.aladin = ipyaladin.Aladin(
             target=self.cluster.name, fov=0.42, survey='P/SDSS9/color',
             layout=layout)
+
+        self.aladin.selection_update = self._update_skyviewer_selection
+
         self.aladin.show_reticle = False
         self.aladin.show_zoom_control = False
         self.aladin.show_fullscreen_control = False
@@ -576,7 +579,6 @@ class SHRD():
         self.source.on_change('selected', self._hr_selection)
 
         self.doc = doc
-        self.aladin.selection_update = self._update_skyviewer_selection
 
         if self.show_sliders:
             sliderbox = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
@@ -592,13 +594,12 @@ class SHRD():
                          description='',disabled=False)])
         box = widgets.HBox(children=[self.aladin, output])
         return widgets.VBox(children=[text_box, box])
-        
+
     def show(self):
         self._show_skyviewer()
         if self.horizontal:
             output = widgets.Output()
-            self.handler = show_with_bokeh_server(
-                self._show_hr_diagram, output=output)
+            show_with_bokeh_server(self._show_hr_diagram, output=output)
             box = self._box(output)
             widgets.widget.display(box,layout=widgets.Layout(width='auto'))
             time.sleep(0.8)
