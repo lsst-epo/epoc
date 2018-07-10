@@ -627,8 +627,16 @@ class SHRD():
     def _update_skyviewer_selection(self, selection_ids):
         logging.debug("Skyviewer selected ids: %s", selection_ids)
         self.selection_ids = [np.int64(i) for i in selection_ids]
+
+        # Set aladin's selection ids to None to have the boxes
+        # immediately drawn on _redraw.  If self.aladin.selection_ids
+        # isn't reset, then it won't draw the boxes on the skyviewer
+        # in _redraw.
+        self.aladin.selection_ids = None
+
         self.doc.add_next_tick_callback(self._redraw)
 
     def _redraw(self):
         self._filter_cluster_data()
         self.source.data = self.filtered_data
+        self.aladin.selection_ids = [str(i) for i in self.filtered_data['id']]
