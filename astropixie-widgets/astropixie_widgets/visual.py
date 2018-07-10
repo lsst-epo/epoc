@@ -10,6 +10,7 @@ import astropy
 from astroquery.sdss import SDSS
 
 from bokeh.core.enums import SliderCallbackPolicy
+from bokeh.events import Reset
 from bokeh.layouts import row, column, widgetbox
 from bokeh.models import CategoricalColorMapper, ColumnDataSource,\
     CustomJS, LassoSelectTool, BoxSelectTool, HoverTool
@@ -427,6 +428,7 @@ class SHRD():
     doc = None
     filtered_data = None
     selection_ids = []
+    skyviewer_ids = []
     source = None
     horizontal = True
     show_sliders = None
@@ -566,6 +568,8 @@ class SHRD():
                           (xaxis_label, "@temperature{0}"),
                           (yaxis_label, "@luminosity{0.00}")]
 
+        self.pf.on_event(Reset, self._reset)
+
         # Prep the ColumnDataSource used in drawing the circles.
         self._filter_cluster_data()
         self.source = ColumnDataSource(data=self.filtered_data, name='hr')
@@ -641,7 +645,8 @@ class SHRD():
 
     def _update_skyviewer_selection(self, selection_ids):
         logging.debug("Skyviewer selected ids: %s", selection_ids)
-        self.selection_ids = [np.int64(i) for i in selection_ids]
+        self.skyviewer_ids = [np.int64(i) for i in selection_ids]
+        self.selection_ids = self.skyviewer_ids
 
         # Set aladin's selection ids to None to have the boxes
         # immediately drawn on _redraw.  If self.aladin.selection_ids
@@ -655,3 +660,22 @@ class SHRD():
         self._filter_cluster_data()
         self.source.data = self.filtered_data
         self.aladin.selection_ids = [str(i) for i in self.filtered_data['id']]
+
+    def _reset(self, event):
+        logging.debug("Reset!")
+
+        # Reset the IDs for things shown to be that what was lasso'd
+        # in the skyviewer.
+        self.selection_ids = self.skyviewer_ids
+
+        # Reset the sliders to be the max values.
+        self.temperature_range_slider.value = \
+            (self.temperature_range_slider.start,
+             self.temperature_range_slider.end)
+        self.luminosity_range_slider.value = \
+            (self.luminosity_range_slider.start,
+             self.luminosity_range_slider.end)
+
+        # Redraw, although this is already done by updating the value
+        # of the sliders.
+        self.doc.add_next_tick_callback(self._redraw)
