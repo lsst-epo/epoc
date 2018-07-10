@@ -545,11 +545,6 @@ class SHRD():
             step=0.2)
         self.luminosity_range_slider.on_change('value', self._update_slider_range)
 
-        # Setup the data source, which will initially be empty
-        # (or more specifically, whatever IDs are in self.selection_ids)
-        self._filter_cluster_data()
-        self.source = ColumnDataSource(data=self.filtered_data, name='hr')
-
         # Setup the figure and tools.
         self.pf = figure(y_axis_type='log',
                          y_axis_label=yaxis_label,
