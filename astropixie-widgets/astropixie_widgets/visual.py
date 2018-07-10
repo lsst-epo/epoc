@@ -576,7 +576,7 @@ class SHRD():
         self.pf.circle(x='temperature', y='luminosity', source=self.source,
                        size=5, color=color, alpha=1, name='hr',
                        line_color='#444444', line_width=0.5)
-        self.source.on_change('selected', self._hr_selection)
+        self.source.on_change('selected', self._update_hr_selection)
 
         self.doc = doc
 
@@ -613,16 +613,30 @@ class SHRD():
     Private callbacks and updates to widget state.
     """
 
-    def _hr_selection(self, attr, old, new):
-        aladin_selection_ids = []
+    def _update_slider_range(self, attr, old, new):
+        self.doc.add_next_tick_callback(self._redraw)
+
+    def _update_hr_selection(self, attr, old, new):
+        if not new['1d']['indices']:
+            # If nothing was selected in the diagram, or this is a
+            # recursion from setting self.source.selected to empty,
+            # don't do anything.
+            return
+
+        self.selection_ids = []
 
         for index in new['1d']['indices']:
-            selected_id = self.filtered_data['id'][index]
-            aladin_selection_ids.append(str(selected_id))
+            self.selection_ids.append(self.filtered_data['id'][index])
 
-        self.aladin.selection_ids = aladin_selection_ids
+        logging.debug("H-R diagram selected ids: %s", self.selection_ids)
 
-    def _update_slider_range(self, attr, old, new):
+        # Now that we've modified the self.selection_ids, which redraw
+        # and data filtering use, reset the selection back to empty.
+        # Note, this will call the _update_hr_selection again, so check
+        # if the selection contains no indices, which either means the
+        # lasso did not contain any stars, or that it is a recursive
+        # callback for this change.
+        self.source.selected = Selection(indices=[])
         self.doc.add_next_tick_callback(self._redraw)
 
     def _update_skyviewer_selection(self, selection_ids):
