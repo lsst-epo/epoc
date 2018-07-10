@@ -438,7 +438,6 @@ class SHRD():
         self.horizontal = horizontal
         self.show_sliders = show_sliders
         self._calculate_cluster_data()
-        self._filter_cluster_data()
 
     def _calculate_cluster_data(self):
         temps, lums = round_teff_luminosity(self.cluster)
@@ -452,9 +451,31 @@ class SHRD():
                                              'color', colors)
 
     def _filter_cluster_data(self):
+        """
+        Filter the cluster data catalog into the filtered_data
+        catalog, which is what is shown in the H-R diagram.
+
+        Filter on the values of the sliders, as well as the lasso
+        selection in the skyviewer.
+        """
+        min_temp = self.temperature_range_slider.value[0]
+        max_temp = self.temperature_range_slider.value[1]
+        temp_mask = np.logical_and(
+            self.cluster.catalog['temperature'] >= min_temp,
+            self.cluster.catalog['temperature'] <= max_temp
+        )
+
+        min_lum = self.luminosity_range_slider.value[0]
+        max_lum = self.luminosity_range_slider.value[1]
+        lum_mask = np.logical_and(
+            self.cluster.catalog['luminosity'] >= min_lum,
+            self.cluster.catalog['luminosity'] <= max_lum
+        )
+
         selected_mask = np.isin(self.cluster.catalog['id'], self.selection_ids)
 
-        filtered_cluster = self.cluster.catalog[selected_mask]
+        filter_mask = temp_mask & lum_mask & selected_mask
+        filtered_cluster = self.cluster.catalog[filter_mask]
 
         self.filtered_data = {
             'id': list(filtered_cluster['id']),
@@ -497,10 +518,33 @@ class SHRD():
                    2 * np.amax(self.cluster.catalog['luminosity'])]
         logging.debug("Setting up HR diagram, y-axis range: %s", y_range)
 
-        logging.debug("Setting up HR diagram, data: %s", self.filtered_data)
+        # Set up the sliders before calling _filter_cluster_data(),
+        # have them default to the full range.
+        self.temperature_range_slider = RangeSlider(
+            title=xaxis_label,
+            callback_policy=SliderCallbackPolicy.throttle,
+            callback_throttle=250.0,
+            value=(x_range[1], x_range[0]),
+            start=x_range[1],
+            end=x_range[0],
+            step=25.0)
+        self.temperature_range_slider.on_change('value', self._update_slider_range)
 
+        self.luminosity_range_slider = RangeSlider(
+            title=yaxis_label,
+            callback_policy=SliderCallbackPolicy.throttle,
+            callback_throttle=250.0,
+            value=y_range,
+            start=y_range[0],
+            end=y_range[1],
+            step=0.2)
+        self.luminosity_range_slider.on_change('value', self._update_slider_range)
+
+
+        self._filter_cluster_data()
         self.source = ColumnDataSource(data=self.filtered_data, name='hr')
 
+        # Setup the figure and tools.
         self.pf = figure(y_axis_type='log',
                          y_axis_label=yaxis_label,
                          y_range=y_range,
@@ -518,6 +562,11 @@ class SHRD():
                           (xaxis_label, "@temperature{0}"),
                           (yaxis_label, "@luminosity{0.00}")]
 
+        # Prep the ColumnDataSource used in drawing the circles.
+        self._filter_cluster_data()
+        self.source = ColumnDataSource(data=self.filtered_data, name='hr')
+
+        # Setup drawing the circles.
         color = {'field': 'color',
                  'transform': self.color_mapper}
         self.pf.circle(x='temperature', y='luminosity', source=self.source,
@@ -525,33 +574,11 @@ class SHRD():
                        line_color='#444444', line_width=0.5)
         self.source.on_change('selected', self._hr_selection)
 
-        if self.show_sliders:
-            self.temperature_range_slider = RangeSlider(
-                title=xaxis_label,
-                callback_policy=SliderCallbackPolicy.throttle,
-                callback_throttle=250.0,
-                value=(x_range[1], x_range[0]),
-                start=x_range[1],
-                end=x_range[0],
-                step=25.0)
-            self.temperature_range_slider.on_change('value', self._update_slider_range)
-
-            self.luminosity_range_slider = RangeSlider(
-                title=yaxis_label,
-                callback_policy=SliderCallbackPolicy.throttle,
-                callback_throttle=250.0,
-                value=y_range,
-                start=y_range[0],
-                end=y_range[1],
-                step=0.2)
-            self.luminosity_range_slider.on_change('value', self._update_slider_range)
-
-            sliderbox = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
-
         self.doc = doc
         self.aladin.selection_update = self.meta_selection_update
 
         if self.show_sliders:
+            sliderbox = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
             doc.add_root(column(self.pf, sliderbox))
         else:
             doc.add_root(self.pf)
@@ -589,33 +616,9 @@ class SHRD():
             self.aladin.add_table(self.cluster.table)
             show_with_bokeh_server(self._show_hr_diagram)
 
-    def _filter_indices_on_sliders(self):
-        """Based on the values of the sliders, filter out unwanted indices."""
-        # If sliders aren't shown, return empty list, which will select
-        # all items.
-        if not self.show_sliders:
-            return []
-
-        filtered_indices = []
-
-        min_temp = self.temperature_range_slider.value[0]
-        max_temp = self.temperature_range_slider.value[1]
-        min_lum = self.luminosity_range_slider.value[0]
-        max_lum = self.luminosity_range_slider.value[1]
-
-        for idx in range(len(self.filtered_data['id'])):
-            if min_temp <= self.filtered_data['temperature'][idx] <= max_temp and \
-               min_lum <= self.filtered_data['luminosity'][idx] <= max_lum:
-                filtered_indices.append(idx)
-        if not filtered_indices:
-            filtered_indices = [0]
-        return filtered_indices
-
     def _skyviewer_selection(self):
         self._filter_cluster_data()
-        indices = self._filter_indices_on_sliders()
         self.source.data = self.filtered_data
-        self.source.selected = Selection(indices=indices)
 
     def meta_selection_update(self, selection_ids):
         logging.debug("Skyviewer selected ids: %s", selection_ids)
