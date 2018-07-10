@@ -439,6 +439,10 @@ class SHRD():
         self.show_sliders = show_sliders
         self._calculate_cluster_data()
 
+    """
+    Data setup, calculations, and filtering.
+    """
+
     def _calculate_cluster_data(self):
         temps, lums = round_teff_luminosity(self.cluster)
         colors, self.color_mapper = hr_diagram_color_helper(temps)
@@ -486,6 +490,10 @@ class SHRD():
 
         logging.debug("Selected data is now: %s", self.filtered_data)
 
+    """
+    Creating, configuring, and showing visual components.
+    """
+
     def _show_skyviewer(self):
         if self.horizontal:
             layout = widgets.Layout(min_width='50%', min_height='600px')
@@ -503,9 +511,6 @@ class SHRD():
         self.aladin.show_catalog = True
         self.aladin.show_frame = False
         self.aladin.show_coo_grid = False
-
-    def _update_slider_range(self, attr, old, new):
-        self.doc.add_next_tick_callback(self._skyviewer_selection)
 
     def _show_hr_diagram(self, doc):
         xaxis_label = 'Temperature (Kelvin)'
@@ -540,7 +545,8 @@ class SHRD():
             step=0.2)
         self.luminosity_range_slider.on_change('value', self._update_slider_range)
 
-
+        # Setup the data source, which will initially be empty
+        # (or more specifically, whatever IDs are in self.selection_ids)
         self._filter_cluster_data()
         self.source = ColumnDataSource(data=self.filtered_data, name='hr')
 
@@ -575,22 +581,13 @@ class SHRD():
         self.source.on_change('selected', self._hr_selection)
 
         self.doc = doc
-        self.aladin.selection_update = self.meta_selection_update
+        self.aladin.selection_update = self._update_skyviewer_selection
 
         if self.show_sliders:
             sliderbox = widgetbox(self.luminosity_range_slider, self.temperature_range_slider)
             doc.add_root(column(self.pf, sliderbox))
         else:
             doc.add_root(self.pf)
-
-    def _hr_selection(self, attr, old, new):
-        aladin_selection_ids = []
-
-        for index in new['1d']['indices']:
-            selected_id = self.filtered_data['id'][index]
-            aladin_selection_ids.append(str(selected_id))
-
-        self.aladin.selection_ids = aladin_selection_ids
 
     def _box(self, output):
         text_box = widgets.HBox(children=[
@@ -616,11 +613,27 @@ class SHRD():
             self.aladin.add_table(self.cluster.table)
             show_with_bokeh_server(self._show_hr_diagram)
 
-    def _skyviewer_selection(self):
-        self._filter_cluster_data()
-        self.source.data = self.filtered_data
+    """
+    Private callbacks and updates to widget state.
+    """
 
-    def meta_selection_update(self, selection_ids):
+    def _hr_selection(self, attr, old, new):
+        aladin_selection_ids = []
+
+        for index in new['1d']['indices']:
+            selected_id = self.filtered_data['id'][index]
+            aladin_selection_ids.append(str(selected_id))
+
+        self.aladin.selection_ids = aladin_selection_ids
+
+    def _update_slider_range(self, attr, old, new):
+        self.doc.add_next_tick_callback(self._redraw)
+
+    def _update_skyviewer_selection(self, selection_ids):
         logging.debug("Skyviewer selected ids: %s", selection_ids)
         self.selection_ids = [np.int64(i) for i in selection_ids]
-        self.doc.add_next_tick_callback(self._skyviewer_selection)
+        self.doc.add_next_tick_callback(self._redraw)
+
+    def _redraw(self):
+        self._filter_cluster_data()
+        self.source.data = self.filtered_data
