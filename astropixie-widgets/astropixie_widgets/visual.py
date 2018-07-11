@@ -434,6 +434,8 @@ class SHRD():
     show_sliders = None
     temperature_range_slider = None
     luminosity_range_slider = None
+    x_range = None
+    y_range = None
 
     def __init__(self, cluster, horizontal=True, show_sliders=True):
         self.cluster = cluster
@@ -481,13 +483,13 @@ class SHRD():
         selected_mask = np.isin(self.cluster.catalog['id'], self.selection_ids)
 
         filter_mask = temp_mask & lum_mask & selected_mask
-        filtered_cluster = self.cluster.catalog[filter_mask]
+        self.filtered_data = self.cluster.catalog[filter_mask]
 
-        self.filtered_data = {
-            'id': list(filtered_cluster['id']),
-            'temperature': list(filtered_cluster['temperature']),
-            'luminosity': list(filtered_cluster['luminosity']),
-            'color': list(filtered_cluster['color'])
+        self.source.data = {
+            'id': list(self.filtered_data['id']),
+            'temperature': list(self.filtered_data['temperature']),
+            'luminosity': list(self.filtered_data['luminosity']),
+            'color': list(self.filtered_data['color'])
         }
 
         logging.debug("Selected data is now: %s", self.filtered_data)
@@ -519,14 +521,14 @@ class SHRD():
 
     def _show_hr_diagram(self, doc):
         xaxis_label = 'Temperature (Kelvin)'
-        x_range = [1.05 * np.amax(self.cluster.catalog['temperature']),
-                   .95 * np.amin(self.cluster.catalog['temperature'])]
-        logging.debug("Setting up HR diagram, x-axis range: %s", x_range)
+        self.x_range = [1.05 * np.amax(self.cluster.catalog['temperature']),
+                        .95 * np.amin(self.cluster.catalog['temperature'])]
+        logging.debug("Setting up HR diagram, x-axis range: %s", self.x_range)
 
         yaxis_label = 'Luminosity (solar units)'
-        y_range = [.50 * np.amin(self.cluster.catalog['luminosity']),
-                   2 * np.amax(self.cluster.catalog['luminosity'])]
-        logging.debug("Setting up HR diagram, y-axis range: %s", y_range)
+        self.y_range = [.50 * np.amin(self.cluster.catalog['luminosity']),
+                        2 * np.amax(self.cluster.catalog['luminosity'])]
+        logging.debug("Setting up HR diagram, y-axis range: %s", self.y_range)
 
         # Set up the sliders before calling _filter_cluster_data(),
         # have them default to the full range.
@@ -534,9 +536,9 @@ class SHRD():
             title=xaxis_label,
             callback_policy=SliderCallbackPolicy.throttle,
             callback_throttle=250.0,
-            value=(x_range[1], x_range[0]),
-            start=x_range[1],
-            end=x_range[0],
+            value=(self.x_range[1], self.x_range[0]),
+            start=self.x_range[1],
+            end=self.x_range[0],
             step=25.0)
         self.temperature_range_slider.on_change('value', self._update_slider_range)
 
@@ -544,19 +546,19 @@ class SHRD():
             title=yaxis_label,
             callback_policy=SliderCallbackPolicy.throttle,
             callback_throttle=250.0,
-            value=y_range,
-            start=y_range[0],
-            end=y_range[1],
+            value=self.y_range,
+            start=self.y_range[0],
+            end=self.y_range[1],
             step=0.2)
         self.luminosity_range_slider.on_change('value', self._update_slider_range)
 
         # Setup the figure and tools.
         self.pf = figure(y_axis_type='log',
                          y_axis_label=yaxis_label,
-                         y_range=y_range,
+                         y_range=self.y_range,
                          x_axis_type='linear',
                          x_axis_label=xaxis_label,
-                         x_range=x_range,
+                         x_range=self.x_range,
                          tools='lasso_select,box_select,reset,hover',
                          title='H-R Diagram for {0}'.format(self.cluster.name))
         self.pf.yaxis.formatter = BasicTickFormatter(precision=3)
@@ -571,8 +573,8 @@ class SHRD():
         self.pf.on_event(Reset, self._reset)
 
         # Prep the ColumnDataSource used in drawing the circles.
+        self.source = ColumnDataSource()
         self._filter_cluster_data()
-        self.source = ColumnDataSource(data=self.filtered_data, name='hr')
 
         # Setup drawing the circles.
         color = {'field': 'color',
@@ -658,7 +660,6 @@ class SHRD():
 
     def _redraw(self):
         self._filter_cluster_data()
-        self.source.data = self.filtered_data
         self.aladin.selection_ids = [str(i) for i in self.filtered_data['id']]
 
     def _reset(self, event):
