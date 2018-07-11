@@ -15,7 +15,7 @@ from bokeh.layouts import row, column, widgetbox
 from bokeh.models import CategoricalColorMapper, ColumnDataSource,\
     CustomJS, LassoSelectTool, BoxSelectTool, Range1d, ResetTool,\
     HoverTool
-from bokeh.models.formatters import NumeralTickFormatter
+from bokeh.models.formatters import NumeralTickFormatter, BasicTickFormatter
 from bokeh.models.selections import Selection
 from bokeh.models.widgets import RangeSlider, Slider, TextInput, Div
 from bokeh.plotting import figure
@@ -508,7 +508,7 @@ WHERE p.clean = 1 and p.probPSF = 1
                                       line_color=line_color, line_width=0.5)
         self.pf.xaxis.axis_label = xaxis_label
         self.pf.yaxis.axis_label = yaxis_label
-        self.pf.yaxis.formatter = NumeralTickFormatter()
+        self.pf.yaxis.formatter = BasicTickFormatter(precision=3)
 
         if self.show_sliders:
             self.temperature_range_slider = RangeSlider(title='Temperature',
