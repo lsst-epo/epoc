@@ -485,7 +485,7 @@ class SHRD():
         selected_mask = np.isin(self.cluster.catalog['id'], self.selection_ids)
 
         filter_mask = temp_mask & lum_mask & selected_mask
-        self.filtered_data = self.cluster.catalog[filter_mask]
+        self.filtered_data = self.cluster.catalog[filter_mask].data
 
         self.source.data = {
             'id': list(self.filtered_data['id']),
