@@ -274,7 +274,7 @@ def get_hr_data(name):
         return data
 
 
-def pprint(arr, columns=('temp', 'lum'),
+def pprint(arr, columns=('temperature', 'luminosity'),
            names=('Temperature (Kelvin)', 'Luminosity (solar units)'),
            max_rows=32, precision=2):
     """
@@ -284,7 +284,7 @@ def pprint(arr, columns=('temp', 'lum'),
 
     arr - An numpy.ndarray.
     columns - The columns to include in the pandas DataFrame. Defaults to
-              temp and lum.
+              temperature and luminosity.
     names - The column names for the pandas DataFrame. Defaults to
             Temperature and Luminosity.
     max_rows - If max_rows is an integer then set the pandas
