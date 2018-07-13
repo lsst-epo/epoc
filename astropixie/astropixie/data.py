@@ -32,7 +32,7 @@ class Berkeley20(SampleOpenCluster):
     http://simbad.u-strasbg.fr/simbad/sim-id?Ident=Berkeley20&submit=submit+id
     https://www.aanda.org/articles/aa/abs/2002/27/aa2476/aa2476.html
     """
-    distance = 9000 * units.parsec # +- 480
+    distance = 9000 * units.parsec  # +- 480
     fe_h = -0.3
     tau = 5.5
     eb_v = 0.12
@@ -114,19 +114,30 @@ class SDSSRegion(OpenCluster):
     catalog = None
     table = None
 
-    def __init__(self, query):
-        self.table = SDSS.query_sql(query)
+    def __init__(self, query=None, table=None):
+        # Either query or table, but not both (query xor table).
+        if (query and table is not None) or\
+           (not query and table is None):
+            raise Exception('Either the query or the table parameter is '
+                            'required. But not both.')
+        if table is not None:
+            # Use table if it was provided.
+            self.table = table
+        else:
+            # Otherwise use the query to create the table.
+            self.table = SDSS.query_sql(query)
         self.catalog = np.array(self.table)
         self.catalog = rename_fields(self.catalog, {'objID': 'id'})
 
         # Calculate B and V like the VizieR data.
         # Use Robert Lupton's derived equations found here:
         # http://www.sdss3.org/dr8/algorithms/sdssUBVRITransform.php
+
         g = self.catalog['g']
         r = self.catalog['r']
 
-        B = g + 0.3130 * (g - r) + 0.2271 # sigma = 0.0107
-        V = g - 0.5784 * (g - r) - 0.0038 # sigma = 0.0054
+        B = g + 0.3130 * (g - r) + 0.2271  # sigma = 0.0107
+        V = g - 0.5784 * (g - r) - 0.0038  # sigma = 0.0054
 
         self.catalog = append_fields(self.catalog, 'B', B)
         self.catalog = append_fields(self.catalog, 'V', V)
@@ -150,9 +161,10 @@ class Berkeley20SDSS(SDSSRegion):
     distance: distance from earth to the cluster
     query: SDSS query to retrieve cluster stars
     """
+
     name = 'Berkeley 20'
     eb_v = 0.12
-    distance = 9000 * units.parsec # +- 480
+    distance = 9000 * units.parsec  # +- 480
     query = """
 SELECT TOP 3200
        p.objID,
@@ -169,11 +181,18 @@ JOIN dbo.fGetNearbyObjEq(83.15416667, 0.18833333, 3.24)
 WHERE p.clean = 1 and p.probPSF = 1
 """
 
-    def __init__(self):
+    def __init__(self, query=None, table=None):
         """
-        Initialize the data using the query for Berkeley 20.
+        Initialize the data using the default query for Berkeley 20,
+        or a provided query xor table.
         """
-        super().__init__(self.query)
+        if table is None:
+            if query:
+                super().__init__(query=query)
+            else:
+                super().__init__(self.query)
+        else:
+            super().__init__(table=table)
 
 
 class NGC2849(SampleOpenCluster):
