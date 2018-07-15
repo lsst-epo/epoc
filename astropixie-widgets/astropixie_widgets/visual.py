@@ -610,7 +610,7 @@ class SHRD():
             show_with_bokeh_server(self._show_hr_diagram, output=output)
             box = self._box(output)
             widgets.widget.display(box,layout=widgets.Layout(width='auto'))
-            time.sleep(0.8)
+            time.sleep(5)
             self.aladin.add_table(self.cluster.table)
         else:
             widgets.widget.display(self.aladin)
