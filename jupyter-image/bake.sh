@@ -15,7 +15,7 @@ git clone https://github.com/lsst-epo/ipyaladin.git /opt/ipyaladin
 (cd /opt/ipyaladin/js && jupyter labextension install --no-build)
 
 # Install bokeh
-pip install bokeh
+pip install 'bokeh>=0.13.0,<0.14.0'
 jupyter labextension install jupyterlab_bokeh --no-build
 
 # Install nbserverproxy.  This allows for URLs like /user/x/proxy/d
